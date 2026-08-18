@@ -1,0 +1,19 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Dependencies / generated files
+node_modules/
+dist/
+*.log
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
