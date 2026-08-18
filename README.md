@@ -30,7 +30,6 @@ math-generator/
 ├── vendor/
 │   ├── jspdf.umd.min.js
 │   └── LICENSE.jspdf.txt
-├── LICENSE
 ├── README.md
 └── THIRD_PARTY_NOTICES.md
 ```
@@ -43,17 +42,3 @@ math-generator/
 4. 「PDFをダウンロード」を押します。
 
 seedを空欄にした場合は、生成するたびに新しいseedが作られます。画面に表示された「使用したseed」を入力欄へコピーすると、同じ条件で同じ問題を再現できます。
-
-## 問題生成ロジック
-
-`js/generator.js`は、以下のPython関数を基準に移植しています。
-
-```python
-make_problems(term_num: int, max_int: int, problem_num: int, back=False)
-```
-
-演算子の選択、左右への項の追加、括弧の付与、整数で割り切れる除算、低い数を出やすくする乱数分布、□の位置選択を引き継いでいます。乱数生成器はJavaScript向けのseed対応実装であるため、同じseedをPythonへ指定した場合の乱数列とは一致しません。
-
-## プロジェクトのライセンス
-
-現時点ではプロジェクト本体の再利用ライセンスを指定していません。第三者ライブラリとフォントのライセンスは`THIRD_PARTY_NOTICES.md`を参照してください。
