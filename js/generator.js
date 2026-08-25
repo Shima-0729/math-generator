@@ -120,7 +120,7 @@
   function makeProblems(termNum, maxInt, problemNum, back = false, rng = Math.random) {
     assertIntegerInRange(termNum, 2, 4, "項数");
     assertIntegerInRange(maxInt, 10, 10000, "数値上限");
-    assertIntegerInRange(problemNum, 1, 300, "問題数");
+    assertIntegerInRange(problemNum, 1, 10000, "問題数");
 
     if (typeof rng !== "function") {
       throw new GeneratorError("乱数生成器が正しくありません。");

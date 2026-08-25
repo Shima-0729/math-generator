@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="条件に合わせて作られた算数問題を1問ずつ解き、解答時間と回答回数を確認できるテストです。">
+  <meta name="color-scheme" content="light">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; img-src 'self' data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>算数テスト｜算数プリント作成ツール</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script defer src="js/generator.js"></script>
+  <script defer src="js/test.js"></script>
+</head>
+<body>
+  <header class="site-header site-header--compact">
+    <div class="site-header__inner">
+      <p class="eyebrow">15 QUESTION MATH TEST</p>
+      <h1>算数テスト</h1>
+      <p class="lead">15問を1問ずつ解いて、かかった時間と回答回数を振り返ります。</p>
+    </div>
+  </header>
+
+  <nav class="feature-nav" aria-labelledby="feature-nav-title">
+    <div class="feature-nav__inner">
+      <div class="feature-nav__heading">
+        <p class="eyebrow">CHOOSE A TOOL</p>
+        <h2 id="feature-nav-title">使いたい機能を選ぶ</h2>
+      </div>
+      <div class="feature-nav__list">
+        <a class="feature-card" href="index.html">
+          <span class="feature-card__number" aria-hidden="true">01</span>
+          <strong>PDFプリント作成</strong>
+          <small>問題用紙と解答をPDFで保存</small>
+        </a>
+        <a class="feature-card" href="csv.html">
+          <span class="feature-card__number" aria-hidden="true">02</span>
+          <strong>CSV問題作成</strong>
+          <small>指定した問題数をCSVで保存</small>
+        </a>
+        <a class="feature-card is-current" href="#test-settings" aria-current="page">
+          <span class="feature-card__number" aria-hidden="true">03</span>
+          <strong>算数テスト</strong>
+          <small>15問を1問ずつ解いて記録</small>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="test-shell">
+    <section id="test-settings" class="settings-card test-settings" aria-labelledby="settings-title">
+      <div class="section-heading">
+        <span class="step-number" aria-hidden="true">1</span>
+        <div>
+          <h2 id="settings-title">テストの条件</h2>
+          <p>1000問の候補を作り、その中から15問を出題します。</p>
+        </div>
+      </div>
+
+      <form id="test-settings-form" novalidate>
+        <fieldset class="form-group">
+          <legend>問題タイプ</legend>
+          <label class="choice-card">
+            <input type="radio" name="problem-type" value="mixed" checked>
+            <span>
+              <strong>普通の計算＋逆算</strong>
+              <small>答えまたは式の途中が□になります</small>
+            </span>
+          </label>
+          <label class="choice-card">
+            <input type="radio" name="problem-type" value="inverse">
+            <span>
+              <strong>逆算のみ</strong>
+              <small>式の途中が必ず□になります</small>
+            </span>
+          </label>
+        </fieldset>
+
+        <div class="form-row">
+          <label class="form-field" for="term-count">
+            <span>項数</span>
+            <select id="term-count" name="term-count">
+              <option value="2">2項</option>
+              <option value="3" selected>3項</option>
+              <option value="4">4項</option>
+            </select>
+          </label>
+
+          <label class="form-field" for="max-int">
+            <span class="form-field__label-row">
+              数値上限
+              <small id="max-int-help" class="form-field__inline-help">10～10000の整数</small>
+            </span>
+            <input id="max-int" name="max-int" type="number" value="500" min="10" max="10000" step="1" inputmode="numeric" required aria-describedby="max-int-help">
+          </label>
+        </div>
+
+        <label class="form-field" for="seed">
+          <span>seed <em>任意</em></span>
+          <input id="seed" name="seed" type="text" maxlength="80" autocomplete="off" placeholder="例：20260825" aria-describedby="seed-help">
+          <small id="seed-help">同じ条件とseedを使うと、同じ問題プールを再現できます。</small>
+        </label>
+
+        <div id="settings-error" class="error-message" role="alert" aria-live="assertive" hidden></div>
+
+        <button class="primary-button" type="submit">テストを始める</button>
+      </form>
+    </section>
+
+    <section id="test-question" class="test-card" aria-labelledby="question-title" hidden>
+      <div class="test-progress-row">
+        <p id="question-progress" class="test-progress">問題 1 / 15</p>
+        <p class="test-seed">seed: <output id="test-seed-output"></output></p>
+      </div>
+      <div class="progress-track" aria-hidden="true">
+        <span id="progress-bar"></span>
+      </div>
+
+      <h2 id="question-title" class="test-expression">問題</h2>
+      <p id="question-expression" class="test-expression__value"></p>
+
+      <form id="answer-form" class="answer-form" novalidate>
+        <label class="form-field" for="answer-input">
+          <span>□に入る整数</span>
+          <input id="answer-input" type="number" step="1" inputmode="numeric" autocomplete="off" required>
+        </label>
+        <button id="answer-button" class="primary-button" type="submit">解答する</button>
+      </form>
+
+      <p id="answer-feedback" class="answer-feedback" role="status" aria-live="assertive"></p>
+    </section>
+
+    <section id="test-results" class="results-card" aria-labelledby="results-title" hidden>
+      <div class="results-heading">
+        <p class="eyebrow">TEST COMPLETE</p>
+        <h2 id="results-title">15問すべて正解しました</h2>
+        <p>今回の記録を振り返ってみましょう。</p>
+      </div>
+
+      <dl class="summary-grid">
+        <div>
+          <dt>合計解答時間</dt>
+          <dd id="total-time">0.0秒</dd>
+        </div>
+        <div>
+          <dt>平均解答時間</dt>
+          <dd id="average-time">0.0秒</dd>
+        </div>
+        <div>
+          <dt>最短解答時間</dt>
+          <dd id="shortest-time">0.0秒</dd>
+        </div>
+        <div>
+          <dt>最長解答時間</dt>
+          <dd id="longest-time">0.0秒</dd>
+        </div>
+        <div>
+          <dt>合計回答回数</dt>
+          <dd id="total-attempts">0回</dd>
+        </div>
+      </dl>
+
+      <section class="slowest-card" aria-labelledby="slowest-title">
+        <p id="slowest-title">最も時間がかかった問題</p>
+        <strong id="slowest-expression"></strong>
+        <span id="slowest-answer" class="slowest-answer"></span>
+        <span id="slowest-detail"></span>
+      </section>
+
+      <div class="result-list-wrap">
+        <table class="result-list">
+          <thead>
+            <tr>
+              <th scope="col">問題</th>
+              <th scope="col">正解</th>
+              <th scope="col">時間</th>
+              <th scope="col">回答回数</th>
+            </tr>
+          </thead>
+          <tbody id="result-list-body"></tbody>
+        </table>
+      </div>
+
+      <div class="result-actions">
+        <button id="retry-button" class="primary-button" type="button">さらに15問解く</button>
+        <button id="back-button" class="secondary-button" type="button">設定画面に戻る</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>問題、解答、記録は外部へ送信されず、ページを閉じると破棄されます。</p>
+  </footer>
+
+  <noscript>
+    <p class="noscript-message">このツールを使うにはJavaScriptを有効にしてください。</p>
+  </noscript>
+</body>
+</html>

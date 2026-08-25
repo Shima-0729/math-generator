@@ -3,22 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="条件を選んで算数の計算問題を作り、問題用紙と解答をPDFで保存できるツールです。">
+  <meta name="description" content="条件を指定して算数問題を作成し、問題と答えをCSVファイルで保存できるツールです。">
   <meta name="color-scheme" content="light">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; img-src 'self' data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
-  <title>算数プリント作成ツール</title>
+  <title>CSV問題作成｜算数プリント作成ツール</title>
   <link rel="stylesheet" href="css/style.css">
-  <script defer src="vendor/jspdf.umd.min.js"></script>
   <script defer src="js/generator.js"></script>
-  <script defer src="js/pdf.js"></script>
-  <script defer src="js/app.js"></script>
+  <script defer src="js/csv.js"></script>
 </head>
 <body>
-  <header class="site-header">
+  <header class="site-header site-header--compact">
     <div class="site-header__inner">
-      <p class="eyebrow">MATH WORKSHEET MAKER</p>
-      <h1>算数プリント作成ツール</h1>
-      <p class="lead">条件を選ぶだけで、計算問題と解答をまとめて作成できます。</p>
+      <p class="eyebrow">MATH PROBLEM CSV MAKER</p>
+      <h1>CSV問題作成</h1>
+      <p class="lead">指定した数の計算問題と答えを、CSVファイルにまとめます。</p>
     </div>
   </header>
 
@@ -29,12 +27,12 @@
         <h2 id="feature-nav-title">使いたい機能を選ぶ</h2>
       </div>
       <div class="feature-nav__list">
-        <a class="feature-card is-current" href="#generator-form" aria-current="page">
+        <a class="feature-card" href="index.html">
           <span class="feature-card__number" aria-hidden="true">01</span>
           <strong>PDFプリント作成</strong>
           <small>問題用紙と解答をPDFで保存</small>
         </a>
-        <a class="feature-card" href="csv.html">
+        <a class="feature-card is-current" href="#csv-form" aria-current="page">
           <span class="feature-card__number" aria-hidden="true">02</span>
           <strong>CSV問題作成</strong>
           <small>指定した問題数をCSVで保存</small>
@@ -54,11 +52,11 @@
         <span class="step-number" aria-hidden="true">1</span>
         <div>
           <h2 id="settings-title">問題の条件</h2>
-          <p>作りたいプリントの難しさを設定してください。</p>
+          <p>CSVに入れる問題の難しさと数を設定します。</p>
         </div>
       </div>
 
-      <form id="generator-form" novalidate>
+      <form id="csv-form" novalidate>
         <fieldset class="form-group">
           <legend>問題タイプ</legend>
           <label class="choice-card">
@@ -77,15 +75,13 @@
           </label>
         </fieldset>
 
-        <div class="form-row">
-          <label class="form-field" for="problem-count">
-            <span>問題数</span>
-            <select id="problem-count" name="problem-count">
-              <option value="15" selected>15問</option>
-              <option value="30">30問</option>
-            </select>
-          </label>
+        <label class="form-field" for="csv-problem-count">
+          <span>問題数</span>
+          <input id="csv-problem-count" name="problem-count" type="number" value="100" min="1" max="10000" step="1" inputmode="numeric" required aria-describedby="csv-problem-count-help">
+          <small id="csv-problem-count-help">1～10000問の整数を入力してください。</small>
+        </label>
 
+        <div class="form-row">
           <label class="form-field" for="term-count">
             <span>項数</span>
             <select id="term-count" name="term-count">
@@ -94,31 +90,32 @@
               <option value="4">4項</option>
             </select>
           </label>
-        </div>
 
-        <label class="form-field" for="max-int">
-          <span>数値上限</span>
-          <input id="max-int" name="max-int" type="number" value="500" min="10" max="10000" step="1" inputmode="numeric" required aria-describedby="max-int-help">
-          <small id="max-int-help">10～10000の整数を入力してください。</small>
-        </label>
+          <label class="form-field" for="max-int">
+            <span>数値上限</span>
+            <input id="max-int" name="max-int" type="number" value="500" min="10" max="10000" step="1" inputmode="numeric" required>
+          </label>
+        </div>
 
         <label class="form-field" for="seed">
           <span>seed <em>任意</em></span>
-          <input id="seed" name="seed" type="text" maxlength="80" autocomplete="off" placeholder="例：20260818" aria-describedby="seed-help">
+          <input id="seed" name="seed" type="text" maxlength="80" autocomplete="off" placeholder="例：20260825" aria-describedby="seed-help">
           <small id="seed-help">空欄なら毎回新しい問題、入力すると同じ問題を再現できます。</small>
         </label>
 
         <div id="form-error" class="error-message" role="alert" aria-live="assertive" hidden></div>
 
-        <button class="primary-button" type="submit">
-          <span>問題を生成</span>
-        </button>
+        <button class="primary-button" type="submit">問題を作成</button>
       </form>
 
       <dl class="generation-status" aria-live="polite">
         <div>
           <dt>使用したseed</dt>
           <dd><output id="used-seed">未生成</output></dd>
+        </div>
+        <div>
+          <dt>作成した問題数</dt>
+          <dd><output id="generated-count">未生成</output></dd>
         </div>
       </dl>
     </section>
@@ -128,18 +125,16 @@
         <div class="section-heading">
           <span class="step-number" aria-hidden="true">2</span>
           <div>
-            <h2 id="preview-title">プレビュー</h2>
-            <p>生成した問題と解答を一覧で確認できます。</p>
+            <h2 id="preview-title">CSVプレビュー</h2>
+            <p id="preview-description">作成した問題の先頭50問までを確認できます。</p>
           </div>
         </div>
-        <button id="download-button" class="secondary-button" type="button" disabled>
-          PDFをダウンロード
-        </button>
+        <button id="csv-download-button" class="secondary-button" type="button" disabled>CSVをダウンロード</button>
       </div>
 
       <div id="preview-empty" class="preview-empty">
         <p class="preview-empty__symbol" aria-hidden="true">□</p>
-        <p>条件を設定して「問題を生成」を押すと、ここに問題が表示されます。</p>
+        <p>条件を設定して「問題を作成」を押すと、ここに問題例が表示されます。</p>
       </div>
 
       <div id="problem-preview" class="problem-preview" hidden>
@@ -147,17 +142,17 @@
           <thead>
             <tr>
               <th scope="col">問題</th>
-              <th scope="col">解答</th>
+              <th scope="col">答え</th>
             </tr>
           </thead>
-          <tbody id="problem-preview-body" aria-live="polite"></tbody>
+          <tbody id="problem-preview-body"></tbody>
         </table>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <p>問題生成とPDF作成は、すべてこのブラウザ内で行われます。</p>
+    <p>問題生成とCSV作成は、すべてこのブラウザ内で行われます。</p>
   </footer>
 
   <noscript>
