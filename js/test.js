@@ -33,7 +33,6 @@
     attempts: 0,
     questionStartedAt: 0,
     seed: null,
-    rng: null,
     acceptingAnswer: false,
   };
 
@@ -91,7 +90,9 @@
       );
     }
 
-    return shuffle(uniquePool, state.rng).slice(0, TEST_SIZE);
+    const selectionSeed = `${Date.now()}-${performance.now()}`;
+    const selectionRng = window.MathGenerator.createSeededRandom(selectionSeed);
+    return shuffle(uniquePool, selectionRng).slice(0, TEST_SIZE);
   }
 
   function setAnswerControlsEnabled(enabled) {
@@ -137,13 +138,13 @@
       const settings = readSettings();
       const requestedSeed = seedInput.value.trim();
       state.seed = requestedSeed || window.MathGenerator.createRandomSeed();
-      state.rng = window.MathGenerator.createSeededRandom(state.seed);
+      const poolRng = window.MathGenerator.createSeededRandom(state.seed);
       state.pool = window.MathGenerator.makeProblems(
         settings.termCount,
         settings.maxInt,
         POOL_SIZE,
         settings.inverseOnly,
-        state.rng,
+        poolRng,
       );
       beginRound();
     } catch (error) {
