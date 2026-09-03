@@ -34,6 +34,13 @@
     formError.hidden = true;
   }
 
+  function formatSeedDate(date) {
+    const year = String(date.getFullYear());
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}${month}${day}`;
+  }
+
   function setBusy(isBusy) {
     generateButton.disabled = isBusy;
     generateButton.textContent = isBusy ? "問題を作成中…" : "問題を作成";
@@ -163,6 +170,8 @@
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
   }
+
+  seedInput.placeholder = `例：${formatSeedDate(new Date())}`;
 
   form.addEventListener("submit", handleGenerate);
   downloadButton.addEventListener("click", handleDownload);

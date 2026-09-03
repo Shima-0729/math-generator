@@ -46,6 +46,13 @@
     settingsError.hidden = true;
   }
 
+  function formatSeedDate(date) {
+    const year = String(date.getFullYear());
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}${month}${day}`;
+  }
+
   function setStartBusy(isBusy) {
     startButton.disabled = isBusy;
     startButton.textContent = isBusy ? "問題を準備中…" : "テストを始める";
@@ -275,6 +282,8 @@
     clearSettingsError();
     settingsSection.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+
+  seedInput.placeholder = `例：${formatSeedDate(new Date())}`;
 
   settingsForm.addEventListener("submit", handleStart);
   answerForm.addEventListener("submit", handleAnswer);
