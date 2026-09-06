@@ -52,7 +52,7 @@
         <span class="step-number" aria-hidden="true">1</span>
         <div>
           <h2 id="settings-title">テストの条件</h2>
-          <p>1000問の候補を作り、その中から15問を出題します。</p>
+          <p>整数問題1000問の候補を作り、その中から15問を出題します。有理数問題はPDF・CSVで利用できます。</p>
         </div>
       </div>
 
@@ -62,9 +62,13 @@
           <label class="choice-card">
             <input type="radio" name="problem-type" value="mixed" checked>
             <span>
-              <strong>普通の計算＋逆算</strong>
+              <strong>計算＋逆算</strong>
               <small>答えまたは式の途中が□になります</small>
             </span>
+          </label>
+          <label class="choice-card">
+            <input type="radio" name="problem-type" value="calculation">
+            <span><strong>計算のみ</strong><small>計算結果が必ず□になります</small></span>
           </label>
           <label class="choice-card">
             <input type="radio" name="problem-type" value="inverse">

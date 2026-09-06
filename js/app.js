@@ -5,8 +5,6 @@
   const form = document.querySelector("#generator-form");
   const generateButton = form.querySelector('button[type="submit"]');
   const problemCountInput = document.querySelector("#problem-count");
-  const termCountInput = document.querySelector("#term-count");
-  const maxIntInput = document.querySelector("#max-int");
   const seedInput = document.querySelector("#seed");
   const usedSeedOutput = document.querySelector("#used-seed");
   const formError = document.querySelector("#form-error");
@@ -14,6 +12,9 @@
   const problemPreview = document.querySelector("#problem-preview");
   const problemPreviewBody = document.querySelector("#problem-preview-body");
   const downloadButton = document.querySelector("#download-button");
+  const generationProgress = document.querySelector("#generation-progress");
+  const settingsController = window.ProblemSettings.setup(form, problemCountInput, "pdf");
+  let busy = false;
 
   const state = {
     problems: [],
@@ -41,22 +42,14 @@
   }
 
   function setGenerationBusy(isBusy) {
+    busy = isBusy;
     generateButton.disabled = isBusy;
-    generateButton.textContent = isBusy ? "PDFを作成中…" : "問題を生成";
+    generateButton.textContent = isBusy ? "問題を生成中…" : "問題を生成";
+    form.setAttribute("aria-busy", String(isBusy));
   }
 
   function readSettings() {
-    const selectedType = form.querySelector('input[name="problem-type"]:checked');
-    if (!selectedType) {
-      throw new window.MathGenerator.GeneratorError("問題タイプを選択してください。");
-    }
-
-    return {
-      problemCount: Number(problemCountInput.value),
-      termCount: Number(termCountInput.value),
-      maxInt: Number(maxIntInput.value),
-      inverseOnly: selectedType.value === "inverse",
-    };
+    return settingsController.read();
   }
 
   function renderProblemPreview(problems) {
@@ -72,11 +65,11 @@
       number.className = "problem-preview__number";
       number.textContent = `${index + 1}.`;
       expression.className = "problem-preview__expression";
-      expression.textContent = problem.expression;
+      window.MathDisplay.render(expression, problem.expression, problem.numberType);
       expressionCell.append(number, expression);
 
       answerCell.className = "problem-preview__answer";
-      answerCell.textContent = String(problem.answer);
+      window.MathDisplay.render(answerCell, problem.answer, problem.numberType);
       row.append(expressionCell, answerCell);
       fragment.append(row);
     });
@@ -88,21 +81,26 @@
 
   async function handleGenerate(event) {
     event.preventDefault();
+    if (busy) return;
     clearError();
     setGenerationBusy(true);
     downloadButton.disabled = true;
+    state.pdfData = null;
+    state.problems = [];
+    usedSeedOutput.textContent = "未生成";
+    problemPreview.hidden = true;
+    previewEmpty.hidden = false;
+    generationProgress.hidden = true;
 
     try {
       const settings = readSettings();
       const requestedSeed = seedInput.value.trim();
       const seed = requestedSeed || window.MathGenerator.createRandomSeed();
-      const rng = window.MathGenerator.createSeededRandom(seed);
-      const problems = window.MathGenerator.makeProblems(
-        settings.termCount,
-        settings.maxInt,
-        settings.problemCount,
-        settings.inverseOnly,
-        rng,
+      generationProgress.hidden = false;
+      generationProgress.textContent = `問題を生成中：0 / ${settings.problemCount}問`;
+      const problems = await window.ProblemSettings.generate(
+        settings, seed,
+        (completed, total) => { generationProgress.textContent = `問題を生成中：${completed} / ${total}問`; },
       );
       const generatedDate = new Date();
 
@@ -116,16 +114,21 @@
       renderProblemPreview(problems);
 
       try {
+        generateButton.textContent = "PDFを作成中…";
+        generationProgress.textContent = "PDFを作成中…";
         state.pdfData = await window.WorksheetPdf.createWorksheetData({
           problems,
           date: generatedDate,
         });
         downloadButton.disabled = false;
+        generationProgress.textContent = `${problems.length}問の問題とPDFを作成しました。`;
       } catch (pdfError) {
         console.error("PDF preparation failed:", pdfError);
+        generationProgress.hidden = true;
         showError("問題は生成できましたが、PDFを準備できませんでした。もう一度お試しください。");
       }
     } catch (error) {
+      generationProgress.hidden = true;
       console.error("Problem generation failed:", error);
       showError(
         error instanceof window.MathGenerator.GeneratorError

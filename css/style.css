@@ -20,6 +20,43 @@
   box-sizing: border-box;
 }
 
+.form-group.rational-settings {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f5faf9;
+}
+
+.generation-progress {
+  color: var(--primary-dark);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.problem-preview__table .katex {
+  font-size: 1.1em;
+}
+
+.math-formula {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0.4em 0;
+  white-space: nowrap;
+  font-weight: 400;
+}
+
+.problem-preview__expression:has(.math-formula) {
+  display: inline-block;
+  max-width: calc(100% - 2.6rem);
+  vertical-align: middle;
+}
+
+.problem-preview__table td:has(.katex) {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
 [hidden] {
   display: none !important;
 }
@@ -852,6 +889,11 @@ h1 {
 
   .problem-preview__table td {
     font-size: 0.9rem;
+  }
+
+  /* スマホでは有理数の数式全体を1.2倍にし、小数だけの場合もサイズをそろえる。 */
+  .problem-preview__table .katex {
+    font-size: 1.32em;
   }
 
   .problem-preview__table td:first-child {

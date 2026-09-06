@@ -117,7 +117,7 @@
    * Python版 make_problems(term_num, max_int, problem_num, back=False) の移植。
    * 第5引数でseed付き乱数生成器を受け取れるようにしている。
    */
-  function makeProblems(termNum, maxInt, problemNum, back = false, rng = Math.random) {
+  function makeProblems(termNum, maxInt, problemNum, back = false, rng = Math.random, calculationOnly = false) {
     assertIntegerInRange(termNum, 2, 4, "項数");
     assertIntegerInRange(maxInt, 10, 10000, "数値上限");
     assertIntegerInRange(problemNum, 1, 10000, "問題数");
@@ -321,7 +321,8 @@
       tokens.push(String(result));
       mask.push(lastMaskValue);
 
-      const hiddenIndex = randomOneIndex(mask, rng);
+      // 従来の2モードでは乱数の消費順を変えず、同じseedの出題を維持する。
+      const hiddenIndex = calculationOnly ? tokens.length - 1 : randomOneIndex(mask, rng);
       const solution = Number(tokens[hiddenIndex]);
       tokens[hiddenIndex] = "□";
 
@@ -345,4 +346,4 @@
     divisors,
     makeProblems,
   });
-})(window);
+})(typeof window === "undefined" ? self : window);

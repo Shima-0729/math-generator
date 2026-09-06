@@ -106,8 +106,12 @@
 
       doc.setFontSize(10.5);
       doc.text(numberText, x, y);
-      setFontSizeToFit(doc, problem.expression, columnWidth - 14, 11.5, 7.5);
-      doc.text(problem.expression, x + 11, y);
+      if (problem.numberType === "rational") {
+        global.MathDisplay.drawPdf(doc, problem.expression, x + 11, y - 1, columnWidth - 14, rowGap - 1.5);
+      } else {
+        setFontSizeToFit(doc, problem.expression, columnWidth - 14, 11.5, 7.5);
+        doc.text(problem.expression, x + 11, y);
+      }
     });
   }
 
@@ -115,6 +119,7 @@
     const headingY = 215;
     const gridTop = 223;
     const columnCount = 5;
+    const rowsPerColumn = Math.ceil(problems.length / columnCount);
     const columnWidth = (PAGE_WIDTH - MARGIN_X * 2) / columnCount;
     const boxGap = 2;
     const boxWidth = columnWidth - boxGap;
@@ -127,8 +132,8 @@
     doc.line(MARGIN_X, headingY + 3, PAGE_WIDTH - MARGIN_X, headingY + 3);
 
     problems.forEach((problem, index) => {
-      const columnIndex = index % columnCount;
-      const rowIndex = Math.floor(index / columnCount);
+      const columnIndex = Math.floor(index / rowsPerColumn);
+      const rowIndex = index % rowsPerColumn;
       const x = MARGIN_X + columnIndex * columnWidth + boxGap / 2;
       const y = gridTop + rowIndex * rowGap;
 
@@ -142,8 +147,13 @@
         const answerAreaStart = x + 12;
         const answerAreaEnd = x + boxWidth - 2;
         const centerX = (answerAreaStart + answerAreaEnd) / 2;
-        setFontSizeToFit(doc, String(problem.answer), answerAreaEnd - answerAreaStart, 11.5, 8);
-        doc.text(String(problem.answer), centerX, y + 6.3, { align: "center" });
+        if (problem.numberType === "rational") {
+          global.MathDisplay.drawPdf(doc, problem.answer, answerAreaStart, y + boxHeight / 2,
+            answerAreaEnd - answerAreaStart, boxHeight - 0.5, 11.5, true);
+        } else {
+          setFontSizeToFit(doc, String(problem.answer), answerAreaEnd - answerAreaStart, 11.5, 8);
+          doc.text(String(problem.answer), centerX, y + 6.3, { align: "center" });
+        }
       }
     });
   }

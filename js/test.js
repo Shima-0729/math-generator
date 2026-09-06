@@ -69,6 +69,7 @@
       termCount: Number(termCountInput.value),
       maxInt: Number(maxIntInput.value),
       inverseOnly: selectedType.value === "inverse",
+      calculationOnly: selectedType.value === "calculation",
     };
   }
 
@@ -152,6 +153,7 @@
         POOL_SIZE,
         settings.inverseOnly,
         poolRng,
+        settings.calculationOnly,
       );
       beginRound();
     } catch (error) {

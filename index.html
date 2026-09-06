@@ -8,8 +8,12 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; img-src 'self' data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>算数プリント作成ツール</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="katex/katex.min.css">
+  <script defer src="katex/katex.min.js"></script>
   <script defer src="vendor/jspdf.umd.min.js"></script>
   <script defer src="js/generator.js"></script>
+  <script defer src="js/settings.js"></script>
+  <script defer src="js/math-display.js"></script>
   <script defer src="js/pdf.js"></script>
   <script defer src="js/app.js"></script>
 </head>
@@ -64,9 +68,13 @@
           <label class="choice-card">
             <input type="radio" name="problem-type" value="mixed" checked>
             <span>
-              <strong>普通の計算＋逆算</strong>
+              <strong>計算＋逆算</strong>
               <small>答えまたは式の途中が□になります</small>
             </span>
+          </label>
+          <label class="choice-card">
+            <input type="radio" name="problem-type" value="calculation">
+            <span><strong>計算のみ</strong><small>計算結果が必ず□になります</small></span>
           </label>
           <label class="choice-card">
             <input type="radio" name="problem-type" value="inverse">
@@ -76,6 +84,16 @@
             </span>
           </label>
         </fieldset>
+
+        <label class="form-field" for="number-type">
+          <span>数の種類</span>
+          <select id="number-type" name="number-type">
+            <option value="mixed">整数＋有理数</option>
+            <option value="integer" selected>整数のみ</option>
+            <option value="rational">有理数のみ</option>
+          </select>
+          <small>有理数問題では分数・帯分数・小数を使います。</small>
+        </label>
 
         <div class="form-row">
           <label class="form-field" for="problem-count">
@@ -96,11 +114,31 @@
           </label>
         </div>
 
+        <label id="integer-count-field" class="form-field" for="integer-count" hidden>
+          <span>整数問題数</span>
+          <input id="integer-count" name="integer-count" type="number" value="8" min="0" max="15" step="1" inputmode="numeric" disabled aria-describedby="rational-count-help">
+          <small id="rational-count-help" aria-live="polite">有理数問題：7問</small>
+        </label>
+
         <label class="form-field" for="max-int">
-          <span>数値上限</span>
+          <span>整数の数値上限</span>
           <input id="max-int" name="max-int" type="number" value="500" min="10" max="10000" step="1" inputmode="numeric" required aria-describedby="max-int-help">
           <small id="max-int-help">10～10000の整数を入力してください。</small>
         </label>
+
+        <fieldset id="rational-settings" class="form-group rational-settings" hidden>
+          <legend>有理数の設定</legend>
+          <label class="form-field" for="max-num">
+            <span>計算結果の上限</span>
+            <input id="max-num" name="max-num" type="number" value="2" min="1" max="10" step="1" inputmode="numeric" disabled aria-describedby="max-num-help">
+            <small id="max-num-help">1～10の整数。途中の計算結果に適用します。式中の数はこの値を超える場合があります。</small>
+          </label>
+          <label class="form-field" for="max-denominator">
+            <span>分母の設定</span>
+            <input id="max-denominator" name="max-denominator" type="number" value="6" min="2" max="10" step="1" inputmode="numeric" disabled aria-describedby="max-denominator-help">
+            <small id="max-denominator-help">2～10の整数。加減算で追加する数の分母の上限です。乗除算や計算結果では、より大きな分母も使います。</small>
+          </label>
+        </fieldset>
 
         <label class="form-field" for="seed">
           <span>seed <em>任意</em></span>
@@ -109,6 +147,7 @@
         </label>
 
         <div id="form-error" class="error-message" role="alert" aria-live="assertive" hidden></div>
+        <p id="generation-progress" class="generation-progress" role="status" hidden></p>
 
         <button class="primary-button" type="submit">
           <span>問題を生成</span>
