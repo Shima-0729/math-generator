@@ -16,8 +16,16 @@
   const previewDescription = document.querySelector("#preview-description");
   const downloadButton = document.querySelector("#csv-download-button");
   const generationProgress = document.querySelector("#generation-progress");
+  const zipStatus = document.querySelector("#zip-export-status");
+  const zipProgress = document.querySelector("#zip-export-progress");
+  const zipMeter = document.querySelector("#zip-export-meter");
+  const zipCancelButton = document.querySelector("#zip-cancel-button");
+  const zipSaveLink = document.querySelector("#zip-save-link");
+  const zipSaveHelp = document.querySelector("#zip-save-help");
   const settingsController = window.ProblemSettings.setup(form, problemCountInput, "csv");
   let busy = false;
+  let exportController = null;
+  let zipUrl = null;
 
   const state = {
     problems: [],
@@ -55,8 +63,8 @@
 
   function readOutputFormat() {
     const format = form.querySelector('input[name="csv-output-format"]:checked')?.value;
-    if (!["plain", "latex"].includes(format)) {
-      throw new window.MathGenerator.GeneratorError("CSVの出力形式を選択してください。");
+    if (!["plain", "latex", "zip"].includes(format)) {
+      throw new window.MathGenerator.GeneratorError("出力形式を選択してください。");
     }
     return format;
   }
@@ -119,13 +127,103 @@
     problems.forEach((problem) => {
       rows.push([formatCsvValue(problem.expression, format), formatCsvValue(problem.answer, format)]);
     });
+    return serializeCsv(rows);
+  }
+
+  function serializeCsv(rows) {
     return `\uFEFF${rows.map((row) => row.map(escapeCsvCell).join(",")).join("\r\n")}`;
+  }
+
+  function clearZipDownload() {
+    if (zipUrl) URL.revokeObjectURL(zipUrl);
+    zipUrl = null;
+    zipSaveLink.removeAttribute("href");
+    zipSaveLink.hidden = true;
+    zipSaveHelp.hidden = true;
+    zipStatus.hidden = true;
+    zipProgress.textContent = "";
+    zipMeter.hidden = true;
+  }
+
+  function updateOutputUi() {
+    const zipSelected = form.querySelector('input[name="csv-output-format"]:checked')?.value === "zip";
+    downloadButton.textContent = exportController ? "ZIPを作成中…"
+      : zipSelected ? "画像付きZIPをダウンロード" : "CSVをダウンロード";
+    downloadButton.disabled = busy || Boolean(exportController) || state.problems.length === 0;
+    zipStatus.hidden = !zipSelected || !zipProgress.textContent;
+  }
+
+  async function downloadZip() {
+    clearZipDownload();
+    const controller = new AbortController();
+    exportController = controller;
+    // disabledの元の状態を保持し、有理数設定などの無効状態も正確に戻す。
+    const controls = [...form.querySelectorAll("input, select, button")].map((element) => ({
+      element, disabled: element.disabled,
+    }));
+    controls.forEach(({ element }) => { element.disabled = true; });
+    form.setAttribute("aria-busy", "true");
+    zipStatus.hidden = false;
+    zipCancelButton.hidden = false;
+    zipCancelButton.disabled = false;
+    zipProgress.textContent = "画像用フォントを準備中…";
+    updateOutputUi();
+    try {
+      if (!window.MathZipExporter?.create) {
+        throw new Error("ZIP作成機能を読み込めませんでした。ページを再読み込みしてください。");
+      }
+      const items = state.problems.map((problem, index) => ({
+        id: String(index + 1).padStart(4, "0"),
+        questionLatex: formatCsvValue(problem.expression, "latex"),
+        answerLatex: formatCsvValue(problem.answer, "latex"),
+      }));
+      const csv = serializeCsv([
+        ["id", "question_latex", "answer_latex"],
+        ...items.map((item) => [item.id, item.questionLatex, item.answerLatex]),
+      ]);
+      const blob = await window.MathZipExporter.create(items, csv, {
+        signal: controller.signal,
+        onProgress({ phase, completed, total }) {
+          zipMeter.max = total;
+          zipMeter.value = completed;
+          zipMeter.hidden = phase === "fonts";
+          zipProgress.textContent = phase === "fonts" ? "画像用フォントを準備中…"
+            : phase === "zip" ? "ZIPファイルを仕上げています…"
+            : `PNG画像を作成中：${completed} / ${total}枚`;
+        },
+      });
+      if (controller.signal.aborted) throw new DOMException("キャンセルしました。", "AbortError");
+      zipUrl = URL.createObjectURL(blob);
+      zipSaveLink.href = zipUrl;
+      zipSaveLink.hidden = false;
+      zipSaveHelp.hidden = false;
+      zipProgress.textContent = `${items.length}問のCSVと${items.length * 2}枚のPNGをZIPにまとめました。`;
+      // 非同期処理後の自動保存を制限するブラウザでも、このリンクから保存できる。
+      zipSaveLink.click();
+    } catch (error) {
+      zipMeter.hidden = true;
+      if (error.name === "AbortError") {
+        zipProgress.textContent = "ZIP作成をキャンセルしました。作成済みの問題はそのまま利用できます。";
+      } else {
+        console.error("ZIP download failed:", error);
+        zipProgress.textContent = "ZIPを作成できませんでした。";
+        showError(error.message || "ZIPを作成できませんでした。もう一度お試しください。");
+      }
+    } finally {
+      controller.abort();
+      exportController = null;
+      controls.forEach(({ element, disabled }) => { element.disabled = disabled; });
+      form.setAttribute("aria-busy", "false");
+      zipCancelButton.hidden = true;
+      updateOutputUi();
+    }
   }
 
   async function handleGenerate(event) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || exportController) return;
     clearError();
+    clearZipDownload();
     setBusy(true);
     downloadButton.disabled = true;
     state.problems = [];
@@ -165,11 +263,12 @@
       );
     } finally {
       setBusy(false);
-      downloadButton.disabled = state.problems.length === 0;
+      updateOutputUi();
     }
   }
 
-  function handleDownload() {
+  async function handleDownload() {
+    if (busy || exportController) return;
     if (state.problems.length === 0) {
       showError("先に問題を作成してください。");
       return;
@@ -178,6 +277,10 @@
     clearError();
     try {
       const format = readOutputFormat();
+      if (format === "zip") {
+        await downloadZip();
+        return;
+      }
       const blob = new Blob([createCsv(state.problems, format)], { type: "text/csv;charset=utf-8" });
       const objectUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -200,4 +303,12 @@
 
   form.addEventListener("submit", handleGenerate);
   downloadButton.addEventListener("click", handleDownload);
+  form.querySelectorAll('input[name="csv-output-format"]').forEach((input) => {
+    input.addEventListener("change", updateOutputUi);
+  });
+  zipCancelButton.addEventListener("click", () => {
+    zipCancelButton.disabled = true;
+    exportController?.abort();
+  });
+  updateOutputUi();
 })();

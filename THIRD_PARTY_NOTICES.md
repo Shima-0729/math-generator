@@ -53,3 +53,27 @@ KaTeX本体のMITライセンスと、フォントの内部情報に記載され
 KaTeXの当該配布物に対応する独立したフォント用OFLファイルは確認できていないため、`katex/OFL.txt` は同梱していません。OFL公式FAQ 1.10は、フォント内部のメタデータにライセンス本文へのリンクを含める方法も認めています（全文の同梱を推奨）。参照：https://openfontlicense.org/ofl-faq/
 
 未使用の `katex/contrib/` は配布対象から除外しています。Apache-2.0の表示を含むmhchem拡張も同梱していません。
+
+## html-to-image
+
+- Version: 1.11.13
+- Project: https://github.com/bubkoo/html-to-image
+- Distribution: `vendor/html-to-image.js`
+- License: MIT
+- License text: `vendor/LICENSE.html-to-image.txt`
+- JS配布元：https://unpkg.com/html-to-image@1.11.13/dist/html-to-image.js
+- ライセンス原文：https://raw.githubusercontent.com/bubkoo/html-to-image/v1.11.13/LICENSE
+
+画像付きZIPの問題・解答PNGの作成に使用します。利用者がダウンロードしたJSと公式ソース配布物内のLICENSEをコピーし、内容は変更していません。
+
+## fflate
+
+- Version: 0.8.3
+- Project: https://github.com/101arrowz/fflate
+- Distribution: `vendor/fflate.js`
+- License: MIT
+- License text: `vendor/LICENSE.fflate.txt`
+- JS配布元：https://unpkg.com/fflate@0.8.3/umd/index.js
+- ライセンス原文：https://raw.githubusercontent.com/101arrowz/fflate/v0.8.3/LICENSE
+
+CSVとPNGをZIPに格納する処理に使用します。利用者がダウンロードした `index.js` を `fflate.js` の名前でコピーし、公式ソース配布物内のLICENSEも同梱しています。両ファイルの内容は変更していません。

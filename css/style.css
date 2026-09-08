@@ -33,6 +33,62 @@
   line-height: 1.6;
 }
 
+.zip-export-status {
+  margin: 0 0 20px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+}
+
+.zip-export-status progress {
+  width: 100%;
+  accent-color: var(--primary);
+}
+
+.zip-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.zip-export-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+/* 親だけを画面外に置き、画像化する子に座標・透明度の補正を持ち込まない。 */
+.math-image-workspace {
+  position: fixed;
+  left: -100000px;
+  top: 0;
+  width: max-content;
+  pointer-events: none;
+}
+
+.math-image-export {
+  display: inline-block;
+  width: max-content;
+  max-width: none;
+  padding: 12px;
+  margin: 0;
+  color: #000;
+  background: transparent;
+  font-family: KaTeX_Main, serif;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.math-image-export .katex {
+  font-size: 1em;
+  white-space: nowrap;
+}
+
 .problem-preview__table .katex {
   font-size: 1.1em;
 }
