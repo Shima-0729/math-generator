@@ -1,3 +1,4 @@
+/* 共通の色・影・基本フォントをまとめる。各部品はCSS変数を参照して配色をそろえる。 */
 :root {
   --ink: #18324a;
   --muted: #657687;
@@ -16,10 +17,12 @@
   font-synthesis: none;
 }
 
+/* 幅と高さにpaddingとborderを含め、指定幅からのはみ出しを防ぐ。 */
 * {
   box-sizing: border-box;
 }
 
+/* 有理数専用の設定を、背景と余白でほかの項目から区別する。 */
 .form-group.rational-settings {
   padding: 16px;
   border: 1px solid var(--line);
@@ -27,12 +30,14 @@
   background: #f5faf9;
 }
 
+/* 問題生成の進捗をフォーム内の補助情報として表示する。 */
 .generation-progress {
   color: var(--primary-dark);
   font-size: 0.9rem;
   line-height: 1.6;
 }
 
+/* ZIP作成の進捗と保存・中止操作をまとめる領域。 */
 .zip-export-status {
   margin: 0 0 20px;
   padding: 16px;
@@ -46,6 +51,7 @@
   accent-color: var(--primary);
 }
 
+/* 保存と中止の操作を横並びにし、幅が足りなければ折り返す。 */
 .zip-export-actions {
   display: flex;
   flex-wrap: wrap;
@@ -68,6 +74,7 @@
   pointer-events: none;
 }
 
+/* PNG用の数式は24pxを基準に、式に応じた幅と透明な余白を持たせる。 */
 .math-image-export {
   display: inline-block;
   width: max-content;
@@ -84,15 +91,18 @@
   text-align: left;
 }
 
+/* 画像用のKaTeXは親の文字サイズを使い、数式を1行で描く。 */
 .math-image-export .katex {
   font-size: 1em;
   white-space: nowrap;
 }
 
+/* 通常の数式を親文字サイズの1.1倍にする。スマホ用の値は後方で上書きする。 */
 .problem-preview__table .katex {
   font-size: 1.1em;
 }
 
+/* 数式を折り返さず、幅を超えた部分は横スクロールで読めるようにする。 */
 .math-formula {
   display: block;
   max-width: 100%;
@@ -102,26 +112,31 @@
   font-weight: 400;
 }
 
+/* 問題番号の幅を残し、数式が列全体を押し広げないようにする。 */
 .problem-preview__expression:has(.math-formula) {
   display: inline-block;
   max-width: calc(100% - 2.6rem);
   vertical-align: middle;
 }
 
+/* 分数の上下が詰まらないよう、KaTeXを含むセルに縦の余白を足す。 */
 .problem-preview__table td:has(.katex) {
   padding-top: 18px;
   padding-bottom: 18px;
 }
 
+/* JSによるhidden切り替えを優先し、部品のdisplay指定による非表示の解除を防ぐ。 */
 [hidden] {
   display: none !important;
 }
 
+/* ページ全体の最小幅を320pxにそろえる。 */
 html {
   min-width: 320px;
   background: var(--canvas);
 }
 
+/* 標準の外側余白をなくし、ページ全体に淡いグラデーションを敷く。 */
 body {
   min-height: 100vh;
   margin: 0;
@@ -130,6 +145,7 @@ body {
     linear-gradient(180deg, #edf7f5 0, var(--canvas) 27rem);
 }
 
+/* 入力部品にもページと同じフォントを継承させる。 */
 button,
 input,
 select {
@@ -140,10 +156,12 @@ button {
   cursor: pointer;
 }
 
+/* 操作できないボタンはカーソルでも無効状態を示す。 */
 button:disabled {
   cursor: not-allowed;
 }
 
+/* ページ上部の見出し領域に余白を設ける。 */
 .site-header {
   padding: 56px 24px 42px;
 }
@@ -157,6 +175,7 @@ button:disabled {
   padding-bottom: 28px;
 }
 
+/* 見出し上の小さなラベルを色と文字間隔で本文から区別する。 */
 .eyebrow {
   margin: 0 0 10px;
   color: var(--primary);
@@ -171,6 +190,7 @@ p {
   margin-top: 0;
 }
 
+/* 画面幅に合わせて大見出しを拡縮し、clampで最小・最大サイズを制限する。 */
 h1 {
   margin-bottom: 12px;
   font-size: clamp(2rem, 5vw, 3.4rem);
@@ -178,6 +198,7 @@ h1 {
   letter-spacing: -0.04em;
 }
 
+/* 導入文の行幅を制限し、長い説明にも読みやすい行間を確保する。 */
 .lead {
   max-width: 42rem;
   margin-bottom: 0;
@@ -186,6 +207,7 @@ h1 {
   line-height: 1.8;
 }
 
+/* 機能へのナビゲーションを本文と同じ最大幅に配置する。 */
 .feature-nav {
   width: min(1180px, calc(100% - 48px));
   margin: 0 auto 28px;
@@ -201,12 +223,14 @@ h1 {
   font-size: 1.3rem;
 }
 
+/* 通常幅では3つの機能を均等な列に並べる。 */
 .feature-nav__list {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
+/* 機能番号と説明を2列に配置し、リンク全体をカードとして見せる。 */
 .feature-card {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -222,22 +246,26 @@ h1 {
   transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
 
+/* ポインターを重ねたカードを枠・影・わずかな移動で強調する。 */
 .feature-card:hover {
   border-color: var(--primary);
   box-shadow: 0 8px 24px rgb(24 50 74 / 9%);
   transform: translateY(-1px);
 }
 
+/* キーボードで選んだリンクを見失わないよう輪郭を付ける。 */
 .feature-card:focus-visible {
   outline: 3px solid rgb(242 166 90 / 55%);
   outline-offset: 3px;
 }
 
+/* 現在開いている機能を背景と枠線で示す。 */
 .feature-card.is-current {
   border-color: var(--primary);
   background: #eff9f8;
 }
 
+/* 機能番号を説明の2行分にまたがって配置する。 */
 .feature-card__number {
   grid-row: 1 / 3;
   color: var(--primary);
@@ -261,6 +289,7 @@ h1 {
   line-height: 1.45;
 }
 
+/* 設定欄とプレビューを2列にする。右列の最小幅を0にし、長い式による幅の拡大を抑える。 */
 .app-shell {
   display: grid;
   grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
@@ -270,6 +299,7 @@ h1 {
   margin: 0 auto 64px;
 }
 
+/* 設定欄とプレビューの枠・角丸・背景・影を統一する。 */
 .settings-card,
 .preview-section {
   border: 1px solid rgb(216 226 229 / 85%);
@@ -278,12 +308,14 @@ h1 {
   box-shadow: var(--shadow);
 }
 
+/* 広い画面では設定欄を上端から24pxの位置に追従させる。 */
 .settings-card {
   position: sticky;
   top: 24px;
   padding: 26px;
 }
 
+/* ステップ番号と見出し文を横並びにして、上端をそろえる。 */
 .section-heading {
   display: flex;
   gap: 14px;
@@ -303,6 +335,7 @@ h1 {
   line-height: 1.6;
 }
 
+/* 手順番号を縮まない円形の目印として表示する。 */
 .step-number {
   display: grid;
   flex: 0 0 34px;
@@ -316,6 +349,7 @@ h1 {
   font-weight: 800;
 }
 
+/* 各機能の設定フォームの項目間隔を統一する。 */
 #generator-form,
 #csv-form,
 #test-settings-form {
@@ -324,6 +358,7 @@ h1 {
   margin-top: 28px;
 }
 
+/* グループの標準の枠と余白をリセットし、内部をグリッドで並べる。 */
 .form-group {
   display: grid;
   gap: 10px;
@@ -340,6 +375,7 @@ h1 {
   font-weight: 800;
 }
 
+/* ラジオボタンと説明文をカード状に配置する。 */
 .choice-card {
   display: flex;
   gap: 11px;
@@ -350,6 +386,7 @@ h1 {
   transition: border-color 160ms ease, background 160ms ease;
 }
 
+/* 内部のラジオボタンが選択されたら親カードの背景と枠を変える。 */
 .choice-card:has(input:checked) {
   border-color: var(--primary);
   background: #eff9f8;
@@ -378,6 +415,7 @@ h1 {
   line-height: 1.55;
 }
 
+/* 関連する2つの入力欄を均等幅で横に並べる。 */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -397,6 +435,7 @@ h1 {
   font-weight: 500;
 }
 
+/* ラベルと補足を同じ行に置き、狭い場合は折り返す。 */
 .form-field > .form-field__label-row {
   display: flex;
   gap: 8px;
@@ -410,6 +449,7 @@ h1 {
   white-space: nowrap;
 }
 
+/* 入力欄を利用可能な幅いっぱいに広げ、操作しやすい高さを確保する。 */
 .form-field input,
 .form-field select {
   width: 100%;
@@ -422,6 +462,7 @@ h1 {
   outline: none;
 }
 
+/* 入力欄と選択カードのフォーカスを共通の色と影で示す。 */
 .form-field input:focus,
 .form-field select:focus,
 .choice-card:has(input:focus-visible) {
@@ -433,6 +474,7 @@ h1 {
   margin-top: 7px;
 }
 
+/* 設定や生成のエラーを警告色の枠と背景で表示する。 */
 .error-message {
   padding: 12px 14px;
   border: 1px solid #f3b9b4;
@@ -443,6 +485,7 @@ h1 {
   line-height: 1.6;
 }
 
+/* 主要・補助ボタンの高さ、角丸、文字の太さと状態変化の速さを統一する。 */
 .primary-button,
 .secondary-button {
   min-height: 48px;
@@ -458,6 +501,7 @@ h1 {
   box-shadow: 0 8px 20px rgb(20 125 120 / 22%);
 }
 
+/* 有効な主要ボタンだけに、ホバー時の色と位置の変化を付ける。 */
 .primary-button:hover:not(:disabled) {
   background: var(--primary-dark);
   transform: translateY(-1px);
@@ -469,6 +513,7 @@ h1 {
   outline-offset: 3px;
 }
 
+/* 生成数とseedを、フォーム本体から区切って表示する。 */
 .generation-status {
   margin: 18px 0 0;
   padding-top: 17px;
@@ -489,6 +534,7 @@ h1 {
   font-size: 0.72rem;
 }
 
+/* 長いseedを任意の位置で折り返し、等幅フォントで表示する。 */
 .generation-status dd {
   overflow-wrap: anywhere;
   margin: 0;
@@ -501,6 +547,7 @@ h1 {
   padding: 26px;
 }
 
+/* プレビュー見出しとダウンロードボタンを左右に配置する。 */
 .preview-toolbar {
   display: flex;
   gap: 18px;
@@ -521,11 +568,13 @@ h1 {
   transform: translateY(-1px);
 }
 
+/* 保存できない状態の補助ボタンを淡い配色にする。 */
 .secondary-button:disabled {
   color: #91a0ac;
   background: #e2e8eb;
 }
 
+/* 未生成時の案内を、一定の高さを持つ点線枠の中央に表示する。 */
 .preview-empty {
   display: grid;
   min-height: 420px;
@@ -551,6 +600,7 @@ h1 {
   line-height: 1.8;
 }
 
+/* 表を角丸の枠に収める。数式の横スクロールは内側の要素が担当する。 */
 .problem-preview {
   min-width: 0;
   overflow: hidden;
@@ -559,6 +609,7 @@ h1 {
   background: #fff;
 }
 
+/* 表を固定レイアウトにし、式の長さによって列幅の配分が変わらないようにする。 */
 .problem-preview__table {
   width: 100%;
   border-collapse: collapse;
@@ -573,6 +624,7 @@ h1 {
   text-align: left;
 }
 
+/* 通常幅では問題列に74%、答え列に26%を割り当てる。 */
 .problem-preview__table th:first-child,
 .problem-preview__table td:first-child {
   width: 74%;
@@ -595,10 +647,12 @@ h1 {
   vertical-align: middle;
 }
 
+/* 1行おきに背景を変え、式と答えの対応を追いやすくする。 */
 .problem-preview__table tbody tr:nth-child(even) {
   background: #f5f9f9;
 }
 
+/* 番号の幅と数字の桁幅をそろえ、式の開始位置をそろえる。 */
 .problem-preview__number {
   display: inline-block;
   width: 2.6em;
@@ -611,6 +665,7 @@ h1 {
   font-weight: 600;
 }
 
+/* 答えの色と文字サイズを一般のセル指定より優先する。 */
 .problem-preview__answer {
   color: var(--primary-dark) !important;
   font-size: 1.08rem !important;
@@ -618,17 +673,20 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 
+/* テスト画面を、出題に集中しやすい幅の単一カラムにする。 */
 .test-shell {
   width: min(820px, calc(100% - 48px));
   margin: 0 auto 64px;
 }
 
+/* テストの設定欄は追従表示を解除して中央に配置する。 */
 .test-settings {
   position: static;
   width: min(580px, 100%);
   margin: 0 auto;
 }
 
+/* 出題と結果のカードは画面幅に応じて内側の余白を調整する。 */
 .test-card,
 .results-card {
   padding: clamp(24px, 5vw, 48px);
@@ -638,6 +696,7 @@ h1 {
   box-shadow: var(--shadow);
 }
 
+/* 問題番号と使用seedを左右に分け、文字の基準線をそろえる。 */
 .test-progress-row {
   display: flex;
   gap: 18px;
@@ -671,6 +730,7 @@ h1 {
   background: #e1eceb;
 }
 
+/* JSが更新するwidthに合わせて、進捗バーを滑らかに伸ばす。 */
 .progress-track span {
   display: block;
   width: 0;
@@ -680,6 +740,7 @@ h1 {
   transition: width 240ms ease;
 }
 
+/* 読み上げ用の説明を視覚的に隠し、支援技術からは参照できる状態を保つ。 */
 .test-expression {
   position: absolute;
   width: 1px;
@@ -689,6 +750,7 @@ h1 {
   white-space: nowrap;
 }
 
+/* 出題する式を中央に大きく表示し、上下に余白を設ける。 */
 .test-expression__value {
   margin: clamp(44px, 8vw, 72px) 0;
   font-size: clamp(1.7rem, 6vw, 3rem);
@@ -698,6 +760,7 @@ h1 {
   overflow-wrap: anywhere;
 }
 
+/* 回答欄と送信ボタンを横並びにし、入力欄が残りの幅を使うようにする。 */
 .answer-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -718,6 +781,7 @@ h1 {
   text-align: center;
 }
 
+/* 正誤メッセージが空でも高さを確保し、回答時のレイアウト移動を抑える。 */
 .answer-feedback {
   min-height: 1.8em;
   margin: 18px 0 0;
@@ -725,6 +789,7 @@ h1 {
   text-align: center;
 }
 
+/* 正解・不正解の状態クラスに応じてメッセージの色を切り替える。 */
 .answer-feedback.is-correct {
   color: var(--primary-dark);
 }
@@ -733,6 +798,7 @@ h1 {
   color: var(--danger);
 }
 
+/* テスト結果の見出しと案内を中央にそろえる。 */
 .results-heading {
   margin-bottom: 28px;
   text-align: center;
@@ -748,6 +814,7 @@ h1 {
   color: var(--muted);
 }
 
+/* 集計値を5列で表示する。狭い画面では後方の指定で列数を減らす。 */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -777,6 +844,7 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 
+/* 最も時間がかかった問題を、結果一覧とは別の背景で表示する。 */
 .slowest-card {
   display: grid;
   gap: 8px;
@@ -809,6 +877,7 @@ h1 {
   font-weight: 700;
 }
 
+/* 結果表の幅を保ち、狭い画面では枠内を横スクロールさせる。 */
 .result-list-wrap {
   overflow-x: auto;
   border: 1px solid #cbd8dc;
@@ -844,11 +913,13 @@ h1 {
   background: #f5f9f9;
 }
 
+/* 結果表では式の列に55%を割り当てる。 */
 .result-list th:first-child,
 .result-list td:first-child {
   width: 55%;
 }
 
+/* 再挑戦と設定へ戻る操作を同じ幅で並べる。 */
 .result-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -856,6 +927,7 @@ h1 {
   margin-top: 24px;
 }
 
+/* ページ末尾の補足を控えめな文字色で中央に配置する。 */
 .site-footer {
   padding: 0 24px 36px;
   color: var(--muted);
@@ -867,6 +939,7 @@ h1 {
   margin-bottom: 0;
 }
 
+/* JavaScript無効時の案内を画面下部に固定する。 */
 .noscript-message {
   position: fixed;
   right: 20px;
@@ -881,6 +954,7 @@ h1 {
   background: var(--danger);
 }
 
+/* 900px以下では本文を1列にし、設定欄の追従を解除する。集計は3列にする。 */
 @media (max-width: 900px) {
   .site-header {
     padding-top: 40px;
@@ -899,6 +973,7 @@ h1 {
   }
 }
 
+/* スマホ向けに余白を縮め、機能ナビゲーションや操作を縦に並べる。 */
 @media (max-width: 600px) {
   .site-header {
     padding: 32px 18px 28px;
@@ -1023,6 +1098,7 @@ h1 {
   }
 }
 
+/* 特に狭い画面では入力を1列にし、表の余白と番号の幅を縮める。 */
 @media (max-width: 390px) {
   .form-row {
     grid-template-columns: 1fr;
@@ -1048,6 +1124,7 @@ h1 {
   }
 }
 
+/* 端末で動きを減らす設定が選ばれた場合は、スクロールや遷移のアニメーションを抑える。 */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
