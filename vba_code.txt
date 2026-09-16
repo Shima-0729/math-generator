@@ -1,0 +1,2485 @@
+Option Explicit
+
+' ==============================================================================
+' 基本設定
+' ==============================================================================
+Private Const SETTINGS_SHEET As String = "設定"
+Private Const SHAPE_PREFIX As String = "MathGen_"
+
+' セット設定表
+Private Const SET_TABLE_HEADER_ROW As Long = 7
+Private Const SET_TABLE_FIRST_ROW As Long = 8
+
+' 配置設定表
+Private Const PLACE_TABLE_HEADER_ROW As Long = 7
+Private Const PLACE_TABLE_FIRST_ROW As Long = 8
+
+
+' ==============================================================================
+' 設定シートを初期作成
+'
+' 最初に1回だけ実行してください。
+'
+' 注意：
+' すでに「設定」シートが存在する場合、その内容を初期化します。
+' ==============================================================================
+Sub CreateMathTestSettings()
+
+    Dim ws As Worksheet
+
+    On Error Resume Next
+    Set ws = ThisWorkbook.Worksheets(SETTINGS_SHEET)
+    On Error GoTo 0
+
+
+    If ws Is Nothing Then
+        Set ws = ThisWorkbook.Worksheets.Add
+        ws.Name = SETTINGS_SHEET
+    End If
+
+
+    ws.Cells.Clear
+
+
+    ' ==========================================================================
+    ' 共通設定
+    ' ==========================================================================
+    ws.Range("A1").value = "共通設定"
+
+    ws.Range("A2").value = "問題セット親フォルダ"
+    ws.Range("B2").value = "question_sets"
+
+    ws.Range("A3").value = "画像余白(pt)"
+    ws.Range("B3").value = 2
+
+    ws.Range("A4").value = "セット数"
+    ws.Range("B4").value = 2
+
+
+    ' ==========================================================================
+    ' セット設定
+    ' ==========================================================================
+    ws.Range("A6").value = "セット設定"
+
+    ws.Range("A7").value = "セット番号"
+    ws.Range("B7").value = "出力シート"
+    ws.Range("C7").value = "問題フォルダ"
+    ws.Range("D7").value = "問題数"
+
+
+    ' ==========================================================================
+    ' 配置設定
+    ' ==========================================================================
+    ws.Range("G6").value = "配置設定"
+
+    ws.Range("G7").value = "有効"
+    ws.Range("H7").value = "セット番号"
+    ws.Range("I7").value = "種類"
+    ws.Range("J7").value = "開始セル"
+    ws.Range("K7").value = "列数"
+    ws.Range("L7").value = "行間"
+    ws.Range("M7").value = "列間"
+
+
+    ' ==========================================================================
+    ' セット設定を自動生成
+    ' ==========================================================================
+    UpdateSetRows False
+
+
+    ' ==========================================================================
+    ' 配置設定サンプル
+    '
+    ' セット1
+    '   問題 → A1
+    '   同じ問題 → A35
+    '   解答 → A69
+    '
+    ' セット2
+    '   問題 → A1
+    '   解答 → A35
+    ' ==========================================================================
+    ws.Range("G8").value = "○"
+    ws.Range("H8").value = 1
+    ws.Range("I8").value = "問題"
+    ws.Range("J8").value = "A1"
+    ws.Range("K8").value = 2
+    ws.Range("L8").value = 2
+    ws.Range("M8").value = 2
+
+
+    ws.Range("G9").value = "○"
+    ws.Range("H9").value = 1
+    ws.Range("I9").value = "問題"
+    ws.Range("J9").value = "A35"
+    ws.Range("K9").value = 2
+    ws.Range("L9").value = 2
+    ws.Range("M9").value = 2
+
+
+    ws.Range("G10").value = "○"
+    ws.Range("H10").value = 1
+    ws.Range("I10").value = "解答"
+    ws.Range("J10").value = "A69"
+    ws.Range("K10").value = 2
+    ws.Range("L10").value = 1
+    ws.Range("M10").value = 2
+
+
+    ws.Range("G11").value = "○"
+    ws.Range("H11").value = 2
+    ws.Range("I11").value = "問題"
+    ws.Range("J11").value = "A1"
+    ws.Range("K11").value = 2
+    ws.Range("L11").value = 2
+    ws.Range("M11").value = 2
+
+
+    ws.Range("G12").value = "○"
+    ws.Range("H12").value = 2
+    ws.Range("I12").value = "解答"
+    ws.Range("J12").value = "A35"
+    ws.Range("K12").value = 2
+    ws.Range("L12").value = 1
+    ws.Range("M12").value = 2
+
+
+    ' ==========================================================================
+    ' 表示調整
+    ' ==========================================================================
+    ws.Range("A1:B1").Font.Bold = True
+    ws.Range("A6:D7").Font.Bold = True
+    ws.Range("G6:M7").Font.Bold = True
+
+    ws.Columns("A:M").AutoFit
+
+
+    MsgBox _
+        "設定シートを作成しました。" & vbCrLf & vbCrLf & _
+        "セット数を変更した場合は、" & vbCrLf & _
+        "UpdateSetSettings を実行してください。", _
+        vbInformation
+
+End Sub
+
+
+' ==============================================================================
+' セット数に合わせてセット設定行を作成
+'
+' B4：
+'
+' 3
+'
+' として実行すると
+'
+' セット1
+' セット2
+' セット3
+'
+' の設定行を作ります。
+'
+' 既存の出力シート名・フォルダ名・問題数は可能な限り保持します。
+' ==============================================================================
+Sub UpdateSetSettings()
+
+    UpdateSetRows True
+
+End Sub
+
+
+' ==============================================================================
+' セット設定行の内部更新処理
+' ==============================================================================
+Private Sub UpdateSetRows(ByVal showMessage As Boolean)
+
+    Dim ws As Worksheet
+
+    On Error Resume Next
+    Set ws = ThisWorkbook.Worksheets(SETTINGS_SHEET)
+    On Error GoTo 0
+
+
+    If ws Is Nothing Then
+
+        MsgBox _
+            "「設定」シートがありません。" & vbCrLf & _
+            "CreateMathTestSettings を先に実行してください。", _
+            vbExclamation
+
+        Exit Sub
+
+    End If
+
+
+    ' ==========================================================================
+    ' セット数
+    ' ==========================================================================
+    If Not IsNumeric(ws.Range("B4").value) Then
+
+        MsgBox _
+            "セット数には整数を入力してください。", _
+            vbExclamation
+
+        Exit Sub
+
+    End If
+
+
+    Dim setCount As Long
+
+    setCount = CLng(ws.Range("B4").value)
+
+
+    If setCount <= 0 Then
+
+        MsgBox _
+            "セット数は1以上にしてください。", _
+            vbExclamation
+
+        Exit Sub
+
+    End If
+
+
+    ' ==========================================================================
+    ' 見出し
+    ' ==========================================================================
+    ws.Range("A7").value = "セット番号"
+    ws.Range("B7").value = "出力シート"
+    ws.Range("C7").value = "問題フォルダ"
+    ws.Range("D7").value = "問題数"
+
+    ws.Range("A7:D7").Font.Bold = True
+
+
+    ' ==========================================================================
+    ' 現在の最終行
+    ' ==========================================================================
+    Dim oldLastRow As Long
+
+    oldLastRow = _
+        ws.Cells( _
+            ws.Rows.Count, _
+            "A" _
+        ).End(xlUp).Row
+
+
+    If oldLastRow < SET_TABLE_FIRST_ROW Then
+        oldLastRow = SET_TABLE_FIRST_ROW
+    End If
+
+
+    ' ==========================================================================
+    ' セット行生成
+    ' ==========================================================================
+    Dim setNo As Long
+    Dim rowNo As Long
+
+
+    For setNo = 1 To setCount
+
+        rowNo = _
+            SET_TABLE_FIRST_ROW + setNo - 1
+
+
+        ' ----------------------------------------------------------------------
+        ' セット番号
+        ' ----------------------------------------------------------------------
+        ws.Cells(rowNo, "A").value = setNo
+
+
+        ' ----------------------------------------------------------------------
+        ' 出力シート
+        '
+        ' 空欄の場合だけ初期値
+        ' ----------------------------------------------------------------------
+        If Trim(CStr(ws.Cells(rowNo, "B").value)) = "" Then
+
+            ws.Cells(rowNo, "B").value = _
+                "プリント" & setNo
+
+        End If
+
+
+        ' ----------------------------------------------------------------------
+        ' 問題フォルダ
+        '
+        ' 空欄の場合だけ
+        '
+        ' 1st_math_questions
+        ' 2nd_math_questions
+        ' ...
+        '
+        ' を設定
+        ' ----------------------------------------------------------------------
+        If Trim(CStr(ws.Cells(rowNo, "C").value)) = "" Then
+
+            ws.Cells(rowNo, "C").value = _
+                OrdinalName(setNo) & "_math_questions"
+
+        End If
+
+
+        ' ----------------------------------------------------------------------
+        ' 問題数
+        ' ----------------------------------------------------------------------
+        If Trim(CStr(ws.Cells(rowNo, "D").value)) = "" Then
+
+            ws.Cells(rowNo, "D").value = 30
+
+        End If
+
+    Next setNo
+
+
+    ' ==========================================================================
+    ' セット数より下に残った旧設定だけ削除
+    '
+    ' 配置設定側(G:M)には触れません。
+    ' ==========================================================================
+    Dim firstUnusedRow As Long
+
+    firstUnusedRow = _
+        SET_TABLE_FIRST_ROW + setCount
+
+
+    If oldLastRow >= firstUnusedRow Then
+
+        ws.Range( _
+            "A" & firstUnusedRow & _
+            ":D" & oldLastRow _
+        ).ClearContents
+
+    End If
+
+
+    ws.Columns("A:D").AutoFit
+
+
+    If showMessage Then
+
+        MsgBox _
+            setCount & _
+            " 個のセット設定を用意しました。", _
+            vbInformation
+
+    End If
+
+End Sub
+
+
+' ==============================================================================
+' メイン処理
+'
+' 複数セットをまとめて生成する。
+' ==============================================================================
+Sub GenerateMathTests()
+
+    Dim configWs As Worksheet
+
+    Dim oldCalculation As XlCalculation
+
+    Dim appOptimized As Boolean
+
+    oldCalculation = Application.Calculation
+
+
+    ' ==========================================================================
+    ' 設定シート
+    ' ==========================================================================
+    On Error Resume Next
+    Set configWs = ThisWorkbook.Worksheets(SETTINGS_SHEET)
+    On Error GoTo 0
+
+
+    If configWs Is Nothing Then
+
+        MsgBox _
+            "「設定」シートがありません。" & vbCrLf & _
+            "CreateMathTestSettings を先に実行してください。", _
+            vbExclamation
+
+        Exit Sub
+
+    End If
+
+
+    ' ==========================================================================
+    ' セット数
+    ' ==========================================================================
+    If Not IsNumeric(configWs.Range("B4").value) Then
+
+        MsgBox _
+            "セット数には整数を入力してください。", _
+            vbExclamation
+
+        Exit Sub
+
+    End If
+
+
+    Dim totalSetCount As Long
+
+    totalSetCount = _
+        CLng(configWs.Range("B4").value)
+
+
+    If totalSetCount <= 0 Then
+
+        MsgBox _
+            "セット数は1以上にしてください。", _
+            vbExclamation
+
+        Exit Sub
+
+    End If
+
+
+    ' ==========================================================================
+    ' セット数に合わせて設定行を自動調整
+    '
+    ' B4だけ変更してUpdateSetSettingsを忘れていても対応。
+    ' ==========================================================================
+    UpdateSetRows False
+
+
+    ' ==========================================================================
+    ' 共通設定
+    ' ==========================================================================
+    Dim parentFolderSetting As String
+    Dim parentFolder As String
+
+    Dim imageMargin As Double
+
+
+    parentFolderSetting = _
+        Trim(CStr(configWs.Range("B2").value))
+
+
+    If Not IsNumeric(configWs.Range("B3").value) Then
+
+        MsgBox _
+            "画像余白には数値を指定してください。", _
+            vbExclamation
+
+        Exit Sub
+
+    End If
+
+
+    imageMargin = _
+        CDbl(configWs.Range("B3").value)
+
+
+    If imageMargin < 0 Then
+
+        MsgBox _
+            "画像余白は0以上にしてください。", _
+            vbExclamation
+
+        Exit Sub
+
+    End If
+
+
+    parentFolder = _
+        ResolveFolderPath(parentFolderSetting)
+
+
+    If Not FolderExists(parentFolder) Then
+
+        MsgBox _
+            "問題セット親フォルダが見つかりません。" & _
+            vbCrLf & vbCrLf & _
+            parentFolder, _
+            vbExclamation
+
+        Exit Sub
+
+    End If
+
+
+    ' ==========================================================================
+    ' 各セットの情報
+    '
+    ' Key = セット番号を文字列化したもの
+    ' ==========================================================================
+    Dim setSheet As Object
+    Dim setFolder As Object
+    Dim setQuestionCount As Object
+
+    Dim selectedSets As Object
+
+    Dim questionScales As Object
+    Dim answerScales As Object
+
+
+    Set setSheet = _
+        CreateObject("Scripting.Dictionary")
+
+    Set setFolder = _
+        CreateObject("Scripting.Dictionary")
+
+    Set setQuestionCount = _
+        CreateObject("Scripting.Dictionary")
+
+    Set selectedSets = _
+        CreateObject("Scripting.Dictionary")
+
+    Set questionScales = _
+        CreateObject("Scripting.Dictionary")
+
+    Set answerScales = _
+        CreateObject("Scripting.Dictionary")
+
+
+    ' ==========================================================================
+    ' セット設定読み込み
+    ' ==========================================================================
+    Dim setNo As Long
+    Dim rowNo As Long
+
+    Dim key As String
+
+    Dim outputSheetName As String
+    Dim questionFolderName As String
+
+    Dim questionCount As Long
+
+
+    For setNo = 1 To totalSetCount
+
+        rowNo = _
+            SET_TABLE_FIRST_ROW + setNo - 1
+
+
+        key = CStr(setNo)
+
+
+        outputSheetName = _
+            Trim(CStr(configWs.Cells(rowNo, "B").value))
+
+
+        questionFolderName = _
+            Trim(CStr(configWs.Cells(rowNo, "C").value))
+
+
+        If outputSheetName = "" Then
+
+            MsgBox _
+                "セット" & setNo & _
+                " の出力シートが設定されていません。", _
+                vbExclamation
+
+            Exit Sub
+
+        End If
+
+
+        If questionFolderName = "" Then
+
+            MsgBox _
+                "セット" & setNo & _
+                " の問題フォルダが設定されていません。", _
+                vbExclamation
+
+            Exit Sub
+
+        End If
+
+
+        If Not IsNumeric(configWs.Cells(rowNo, "D").value) Then
+
+            MsgBox _
+                "セット" & setNo & _
+                " の問題数には整数を入力してください。", _
+                vbExclamation
+
+            Exit Sub
+
+        End If
+
+
+        questionCount = _
+            CLng(configWs.Cells(rowNo, "D").value)
+
+
+        If questionCount <= 0 Then
+
+            MsgBox _
+                "セット" & setNo & _
+                " の問題数は1以上にしてください。", _
+                vbExclamation
+
+            Exit Sub
+
+        End If
+
+
+        ' ----------------------------------------------------------------------
+        ' 出力シート存在確認
+        ' ----------------------------------------------------------------------
+        If Not WorksheetExists(outputSheetName) Then
+
+            MsgBox _
+                "セット" & setNo & _
+                " の出力シート「" & _
+                outputSheetName & _
+                "」が存在しません。" & _
+                vbCrLf & vbCrLf & _
+                "固定テンプレートのシート名を確認してください。", _
+                vbExclamation
+
+            Exit Sub
+
+        End If
+
+
+        setSheet.Add _
+            key, _
+            outputSheetName
+
+
+        setFolder.Add _
+            key, _
+            questionFolderName
+
+
+        setQuestionCount.Add _
+            key, _
+            questionCount
+
+
+        ' 共通倍率は100%から開始
+        questionScales.Add _
+            key, _
+            1#
+
+
+        answerScales.Add _
+            key, _
+            1#
+
+    Next setNo
+
+
+    ' ==========================================================================
+    ' 配置設定チェック
+    ' ==========================================================================
+    Dim lastPlaceRow As Long
+
+    lastPlaceRow = _
+        configWs.Cells( _
+            configWs.Rows.Count, _
+            "H" _
+        ).End(xlUp).Row
+
+
+    If lastPlaceRow < PLACE_TABLE_FIRST_ROW Then
+
+        MsgBox _
+            "配置設定がありません。", _
+            vbExclamation
+
+        Exit Sub
+
+    End If
+
+
+    Dim placementCount As Object
+
+    Set placementCount = _
+        CreateObject("Scripting.Dictionary")
+
+
+    Dim r As Long
+    Dim placementSetNo As Long
+
+    Dim placementType As String
+
+
+    For r = PLACE_TABLE_FIRST_ROW To lastPlaceRow
+
+
+        If IsEnabled(configWs.Cells(r, "G").value) Then
+
+
+            If Not IsNumeric(configWs.Cells(r, "H").value) Then
+
+                MsgBox _
+                    "配置設定 " & r & _
+                    " 行目のセット番号が不正です。", _
+                    vbExclamation
+
+                Exit Sub
+
+            End If
+
+
+            placementSetNo = _
+                CLng(configWs.Cells(r, "H").value)
+
+
+            If placementSetNo < 1 Or _
+               placementSetNo > totalSetCount Then
+
+                MsgBox _
+                    "配置設定 " & r & _
+                    " 行目がセット" & _
+                    placementSetNo & _
+                    "を参照しています。" & vbCrLf & _
+                    "現在のセット数は " & _
+                    totalSetCount & " です。", _
+                    vbExclamation
+
+                Exit Sub
+
+            End If
+
+
+            placementType = _
+                NormalizePlacementType( _
+                    CStr(configWs.Cells(r, "I").value) _
+                )
+
+
+            If placementType = "" Then
+
+                MsgBox _
+                    "配置設定 " & r & _
+                    " 行目の種類は" & vbCrLf & _
+                    "「問題」または「解答」にしてください。", _
+                    vbExclamation
+
+                Exit Sub
+
+            End If
+
+
+            key = CStr(placementSetNo)
+
+
+            If placementCount.Exists(key) Then
+
+                placementCount(key) = _
+                    CLng(placementCount(key)) + 1
+
+            Else
+
+                placementCount.Add _
+                    key, _
+                    1
+
+            End If
+
+
+        End If
+
+    Next r
+
+
+    ' ==========================================================================
+    ' 各セットに最低1個は配置設定が必要
+    ' ==========================================================================
+    For setNo = 1 To totalSetCount
+
+        key = CStr(setNo)
+
+
+        If Not placementCount.Exists(key) Then
+
+            MsgBox _
+                "セット" & setNo & _
+                " の有効な配置設定がありません。" & _
+                vbCrLf & vbCrLf & _
+                "配置設定表にセット番号 " & _
+                setNo & _
+                " の行を追加してください。", _
+                vbExclamation
+
+            Exit Sub
+
+        End If
+
+    Next setNo
+
+
+    ' ==========================================================================
+    ' ランダム初期化
+    '
+    ' ここで1回だけ実行する。
+    ' ==============================================================================
+    Randomize
+
+
+    ' ==========================================================================
+    ' 各セットから問題を独立してランダム選択
+    ' ==========================================================================
+    Dim basePath As String
+    Dim questionsPath As String
+    Dim answersPath As String
+
+    Dim availableIds As Collection
+
+    Dim selectedIds As Variant
+
+
+    For setNo = 1 To totalSetCount
+
+        key = CStr(setNo)
+
+
+        basePath = _
+            CombinePath( _
+                parentFolder, _
+                CStr(setFolder(key)) _
+            )
+
+
+        questionsPath = _
+            CombinePath( _
+                basePath, _
+                "questions" _
+            )
+
+
+        answersPath = _
+            CombinePath( _
+                basePath, _
+                "answers" _
+            )
+
+
+        If Not FolderExists(basePath) Then
+
+            MsgBox _
+                "セット" & setNo & _
+                " の問題フォルダが見つかりません。" & _
+                vbCrLf & vbCrLf & _
+                basePath, _
+                vbExclamation
+
+            Exit Sub
+
+        End If
+
+
+        If Not FolderExists(questionsPath) Then
+
+            MsgBox _
+                "セット" & setNo & _
+                " のquestionsフォルダが見つかりません。" & _
+                vbCrLf & vbCrLf & _
+                questionsPath, _
+                vbExclamation
+
+            Exit Sub
+
+        End If
+
+
+        If Not FolderExists(answersPath) Then
+
+            MsgBox _
+                "セット" & setNo & _
+                " のanswersフォルダが見つかりません。" & _
+                vbCrLf & vbCrLf & _
+                answersPath, _
+                vbExclamation
+
+            Exit Sub
+
+        End If
+
+
+        Set availableIds = _
+            GetAvailableQuestionIds( _
+                questionsPath, _
+                answersPath _
+            )
+
+
+        questionCount = _
+            CLng(setQuestionCount(key))
+
+
+        If availableIds.Count < questionCount Then
+
+            MsgBox _
+                "セット" & setNo & _
+                " の問題数が不足しています。" & _
+                vbCrLf & vbCrLf & _
+                "必要：" & questionCount & " 問" & vbCrLf & _
+                "使用可能：" & availableIds.Count & " 問", _
+                vbExclamation
+
+            Exit Sub
+
+        End If
+
+
+        ' ----------------------------------------------------------------------
+        ' このセット専用にランダム選択
+        '
+        ' Variant配列としてDictionaryへ保存する。
+        ' ----------------------------------------------------------------------
+        selectedIds = _
+            SelectRandomIdsArray( _
+                availableIds, _
+                questionCount _
+            )
+
+
+        selectedSets.Add _
+            key, _
+            selectedIds
+
+    Next setNo
+
+
+    ' ==========================================================================
+    ' 前回生成した画像を削除
+    '
+    ' 同じ出力シートを複数セットが使っていても1回だけ実行する。
+    ' ==========================================================================
+    Dim cleanedSheets As Object
+
+    Set cleanedSheets = _
+        CreateObject("Scripting.Dictionary")
+
+
+    Dim ws As Worksheet
+
+
+    For setNo = 1 To totalSetCount
+
+        key = CStr(setNo)
+
+
+        outputSheetName = _
+            CStr(setSheet(key))
+
+
+        If Not cleanedSheets.Exists(outputSheetName) Then
+
+
+            Set ws = _
+                ThisWorkbook.Worksheets( _
+                    outputSheetName _
+                )
+
+
+            DeleteGeneratedShapes ws
+
+
+            cleanedSheets.Add _
+                outputSheetName, _
+                True
+
+        End If
+
+    Next setNo
+
+
+    ' ==========================================================================
+    ' Excel高速化
+    ' ==========================================================================
+    Application.ScreenUpdating = False
+    Application.EnableEvents = False
+    Application.Calculation = xlCalculationManual
+
+    Application.StatusBar = _
+        "算数プリントを作成しています..."
+
+    appOptimized = True
+
+
+    On Error GoTo ErrorHandler
+
+
+    ' ==========================================================================
+    ' 第1段階
+    '
+    ' 元サイズで画像を配置して、
+    ' セットごとの最小縮小率を求める。
+    ' ==========================================================================
+    Dim startAddress As String
+
+    Dim columnCount As Long
+    Dim rowStep As Long
+    Dim columnStep As Long
+
+    Dim targetCells As Collection
+
+    Dim i As Long
+
+    Dim selectedId As String
+    Dim imgPath As String
+
+    Dim targetCell As Range
+
+    Dim pic As Shape
+
+    Dim fitScale As Double
+
+    Dim shapeName As String
+
+
+    For r = PLACE_TABLE_FIRST_ROW To lastPlaceRow
+
+
+        If IsEnabled(configWs.Cells(r, "G").value) Then
+
+
+            ' ------------------------------------------------------------------
+            ' セット番号
+            ' ------------------------------------------------------------------
+            placementSetNo = _
+                CLng(configWs.Cells(r, "H").value)
+
+
+            key = _
+                CStr(placementSetNo)
+
+
+            ' ------------------------------------------------------------------
+            ' 問題 / 解答
+            ' ------------------------------------------------------------------
+            placementType = _
+                NormalizePlacementType( _
+                    CStr(configWs.Cells(r, "I").value) _
+                )
+
+
+            ' ------------------------------------------------------------------
+            ' 配置設定
+            ' ------------------------------------------------------------------
+            startAddress = _
+                Trim(CStr(configWs.Cells(r, "J").value))
+
+
+            If startAddress = "" Then
+
+                Err.Raise _
+                    vbObjectError + 1001, _
+                    , _
+                    "配置設定 " & r & _
+                    " 行目の開始セルが空です。"
+
+            End If
+
+
+            If Not IsNumeric(configWs.Cells(r, "K").value) Or _
+               Not IsNumeric(configWs.Cells(r, "L").value) Or _
+               Not IsNumeric(configWs.Cells(r, "M").value) Then
+
+                Err.Raise _
+                    vbObjectError + 1002, _
+                    , _
+                    "配置設定 " & r & _
+                    " 行目の列数・行間・列間を確認してください。"
+
+            End If
+
+
+            columnCount = _
+                CLng(configWs.Cells(r, "K").value)
+
+
+            rowStep = _
+                CLng(configWs.Cells(r, "L").value)
+
+
+            columnStep = _
+                CLng(configWs.Cells(r, "M").value)
+
+
+            If columnCount <= 0 Or _
+               rowStep <= 0 Or _
+               columnStep <= 0 Then
+
+                Err.Raise _
+                    vbObjectError + 1003, _
+                    , _
+                    "配置設定 " & r & _
+                    " 行目の列数・行間・列間は1以上にしてください。"
+
+            End If
+
+
+            ' ------------------------------------------------------------------
+            ' このセットの出力シート
+            ' ------------------------------------------------------------------
+            Set ws = _
+                ThisWorkbook.Worksheets( _
+                    CStr(setSheet(key)) _
+                )
+
+
+            questionCount = _
+                CLng(setQuestionCount(key))
+
+
+            ' ------------------------------------------------------------------
+            ' 配置セル一覧
+            ' ------------------------------------------------------------------
+            Set targetCells = _
+                BuildGridCells( _
+                    ws, _
+                    startAddress, _
+                    questionCount, _
+                    columnCount, _
+                    rowStep, _
+                    columnStep _
+                )
+
+
+            ' ------------------------------------------------------------------
+            ' 選ばれた問題ID
+            ' ------------------------------------------------------------------
+            selectedIds = _
+                selectedSets(key)
+
+
+            ' ------------------------------------------------------------------
+            ' フォルダ
+            ' ------------------------------------------------------------------
+            basePath = _
+                CombinePath( _
+                    parentFolder, _
+                    CStr(setFolder(key)) _
+                )
+
+
+            questionsPath = _
+                CombinePath( _
+                    basePath, _
+                    "questions" _
+                )
+
+
+            answersPath = _
+                CombinePath( _
+                    basePath, _
+                    "answers" _
+                )
+
+
+            ' ==================================================================
+            ' 各問題
+            ' ==================================================================
+            For i = 1 To questionCount
+
+
+                Application.StatusBar = _
+                    "セット" & placementSetNo & _
+                    " / " & _
+                    IIf(placementType = "Q", "問題", "解答") & _
+                    " / " & _
+                    i & " / " & questionCount
+
+
+                selectedId = _
+                    CStr(selectedIds(i))
+
+
+                ' --------------------------------------------------------------
+                ' 画像パス
+                ' --------------------------------------------------------------
+                If placementType = "Q" Then
+
+                    imgPath = _
+                        CombinePath( _
+                            questionsPath, _
+                            "q" & _
+                            selectedId & _
+                            ".png" _
+                        )
+
+                Else
+
+                    imgPath = _
+                        CombinePath( _
+                            answersPath, _
+                            "a" & _
+                            selectedId & _
+                            ".png" _
+                        )
+
+                End If
+
+
+                If Not FileExists(imgPath) Then
+
+                    Err.Raise _
+                        vbObjectError + 1004, _
+                        , _
+                        "画像が見つかりません。" & vbCrLf & _
+                        imgPath
+
+                End If
+
+
+                Set targetCell = _
+                    targetCells(i)
+
+
+                ' --------------------------------------------------------------
+                ' Shape名
+                '
+                ' 配置設定行＋問題番号なので一意になる。
+                ' --------------------------------------------------------------
+                shapeName = _
+                    BuildShapeName( _
+                        r, _
+                        i _
+                    )
+
+
+                ' --------------------------------------------------------------
+                ' 元サイズで画像を挿入
+                ' --------------------------------------------------------------
+                Set pic = _
+                    InsertImageNatural( _
+                        ws, _
+                        targetCell, _
+                        imgPath, _
+                        shapeName _
+                    )
+
+
+                ' --------------------------------------------------------------
+                ' この画像がセルに入る最大倍率
+                ' --------------------------------------------------------------
+                fitScale = _
+                    CalculateFitScale( _
+                        pic, _
+                        targetCell, _
+                        imageMargin _
+                    )
+
+
+                ' --------------------------------------------------------------
+                ' セット内の最小倍率を記録
+                ' --------------------------------------------------------------
+                If placementType = "Q" Then
+
+
+                    If fitScale < _
+                       CDbl(questionScales(key)) Then
+
+                        questionScales(key) = _
+                            fitScale
+
+                    End If
+
+
+                Else
+
+
+                    If fitScale < _
+                       CDbl(answerScales(key)) Then
+
+                        answerScales(key) = _
+                            fitScale
+
+                    End If
+
+
+                End If
+
+
+            Next i
+
+
+        End If
+
+
+    Next r
+
+
+    ' ==========================================================================
+    ' 第2段階
+    '
+    ' セットごとに決まった共通倍率をすべての画像へ適用する。
+    '
+    ' セット1問題 → 全部同じ倍率
+    ' セット1解答 → 全部同じ倍率
+    '
+    ' セット2はセット2で別倍率
+    ' ==========================================================================
+    For r = PLACE_TABLE_FIRST_ROW To lastPlaceRow
+
+
+        If IsEnabled(configWs.Cells(r, "G").value) Then
+
+
+            placementSetNo = _
+                CLng(configWs.Cells(r, "H").value)
+
+
+            key = _
+                CStr(placementSetNo)
+
+
+            placementType = _
+                NormalizePlacementType( _
+                    CStr(configWs.Cells(r, "I").value) _
+                )
+
+
+            startAddress = _
+                Trim(CStr(configWs.Cells(r, "J").value))
+
+
+            columnCount = _
+                CLng(configWs.Cells(r, "K").value)
+
+
+            rowStep = _
+                CLng(configWs.Cells(r, "L").value)
+
+
+            columnStep = _
+                CLng(configWs.Cells(r, "M").value)
+
+
+            Set ws = _
+                ThisWorkbook.Worksheets( _
+                    CStr(setSheet(key)) _
+                )
+
+
+            questionCount = _
+                CLng(setQuestionCount(key))
+
+
+            Set targetCells = _
+                BuildGridCells( _
+                    ws, _
+                    startAddress, _
+                    questionCount, _
+                    columnCount, _
+                    rowStep, _
+                    columnStep _
+                )
+
+
+            For i = 1 To questionCount
+
+
+                Set targetCell = _
+                    targetCells(i)
+
+
+                shapeName = _
+                    BuildShapeName( _
+                        r, _
+                        i _
+                    )
+
+
+                If ShapeExists(ws, shapeName) Then
+
+
+                    If placementType = "Q" Then
+
+
+                        ApplyCommonScale _
+                            ws.Shapes(shapeName), _
+                            targetCell, _
+                            CDbl(questionScales(key))
+
+
+                    Else
+
+
+                        ApplyCommonScale _
+                            ws.Shapes(shapeName), _
+                            targetCell, _
+                            CDbl(answerScales(key))
+
+
+                    End If
+
+
+                End If
+
+
+            Next i
+
+
+        End If
+
+
+    Next r
+
+
+    ' ==========================================================================
+    ' 正常終了
+    ' ==========================================================================
+    Application.StatusBar = False
+    Application.ScreenUpdating = True
+    Application.EnableEvents = True
+    Application.Calculation = oldCalculation
+
+    appOptimized = False
+
+
+    ' ==========================================================================
+    ' 結果表示
+    ' ==========================================================================
+    Dim message As String
+
+
+    message = _
+        "プリントを作成しました。" & _
+        vbCrLf & vbCrLf
+
+
+    For setNo = 1 To totalSetCount
+
+
+        key = CStr(setNo)
+
+
+        message = _
+            message & _
+            "セット" & setNo & _
+            "：" & _
+            setQuestionCount(key) & _
+            "問" & _
+            vbCrLf & _
+            "  出力：" & _
+            setSheet(key) & _
+            vbCrLf & _
+            "  フォルダ：" & _
+            setFolder(key) & _
+            vbCrLf & _
+            "  問題倍率：" & _
+            Format( _
+                CDbl(questionScales(key)) * 100, _
+                "0.0" _
+            ) & "%" & _
+            vbCrLf & _
+            "  解答倍率：" & _
+            Format( _
+                CDbl(answerScales(key)) * 100, _
+                "0.0" _
+            ) & "%" & _
+            vbCrLf & vbCrLf
+
+
+    Next setNo
+
+
+    MsgBox _
+        message, _
+        vbInformation
+
+
+    Exit Sub
+
+
+' ==============================================================================
+' エラー処理
+' ==============================================================================
+ErrorHandler:
+
+    Dim errNumber As Long
+    Dim errDescription As String
+
+
+    errNumber = _
+        Err.Number
+
+
+    errDescription = _
+        Err.Description
+
+
+    If appOptimized Then
+
+        Application.StatusBar = False
+        Application.ScreenUpdating = True
+        Application.EnableEvents = True
+        Application.Calculation = oldCalculation
+
+    End If
+
+
+    MsgBox _
+        "処理中にエラーが発生しました。" & _
+        vbCrLf & vbCrLf & _
+        "エラー番号：" & _
+        errNumber & _
+        vbCrLf & _
+        errDescription, _
+        vbCritical
+
+End Sub
+
+
+' ==============================================================================
+' 使用可能な問題IDを取得
+'
+' questions
+'
+' q0001.png
+' q0002.png
+'
+' answers
+'
+' a0001.png
+' a0002.png
+'
+' のように問題と解答の両方が存在するものだけ採用。
+'
+' FileSystemObjectを使用しているため、
+' Dirの検索状態問題は発生しない。
+' ==============================================================================
+Function GetAvailableQuestionIds( _
+    ByVal questionsPath As String, _
+    ByVal answersPath As String _
+) As Collection
+
+    Dim result As New Collection
+
+    Dim fso As Object
+
+    Dim folder As Object
+    Dim file As Object
+
+    Dim fileName As String
+    Dim questionId As String
+
+    Dim dotPosition As Long
+
+    Dim answerPath As String
+
+
+    Set fso = _
+        CreateObject( _
+            "Scripting.FileSystemObject" _
+        )
+
+
+    Set folder = _
+        fso.GetFolder(questionsPath)
+
+
+    For Each file In folder.Files
+
+
+        fileName = _
+            CStr(file.Name)
+
+
+        ' ----------------------------------------------------------------------
+        ' q*.pngだけ
+        ' ----------------------------------------------------------------------
+        If LCase(Left(fileName, 1)) = "q" And _
+           LCase(fso.GetExtensionName(fileName)) = "png" Then
+
+
+            dotPosition = _
+                InStrRev(fileName, ".")
+
+
+            If dotPosition > 2 Then
+
+
+                ' --------------------------------------------------------------
+                ' q0001.png
+                '
+                ' ↓
+                '
+                ' 0001
+                ' --------------------------------------------------------------
+                questionId = _
+                    Mid( _
+                        fileName, _
+                        2, _
+                        dotPosition - 2 _
+                    )
+
+
+                answerPath = _
+                    CombinePath( _
+                        answersPath, _
+                        "a" & _
+                        questionId & _
+                        ".png" _
+                    )
+
+
+                ' --------------------------------------------------------------
+                ' 対応する解答がある問題だけ使用
+                ' --------------------------------------------------------------
+                If fso.FileExists(answerPath) Then
+
+                    result.Add _
+                        questionId
+
+                End If
+
+
+            End If
+
+
+        End If
+
+
+    Next file
+
+
+    Set GetAvailableQuestionIds = _
+        result
+
+End Function
+
+
+' ==============================================================================
+' ランダムに指定数だけIDを選択
+'
+' Fisher-Yatesシャッフル
+'
+' 重複なし。
+'
+' 結果は1始まりのString配列。
+' ==============================================================================
+Function SelectRandomIdsArray( _
+    sourceIds As Collection, _
+    ByVal countToPick As Long _
+) As Variant
+
+    Dim ids() As String
+
+    Dim result() As String
+
+    Dim i As Long
+    Dim j As Long
+
+    Dim temp As String
+
+
+    ReDim ids( _
+        1 To sourceIds.Count _
+    )
+
+
+    For i = 1 To sourceIds.Count
+
+        ids(i) = _
+            CStr(sourceIds(i))
+
+    Next i
+
+
+    ' ==========================================================================
+    ' Fisher-Yates
+    ' ==========================================================================
+    For i = UBound(ids) To 2 Step -1
+
+
+        j = _
+            Int(Rnd * i) + 1
+
+
+        temp = _
+            ids(i)
+
+
+        ids(i) = _
+            ids(j)
+
+
+        ids(j) = _
+            temp
+
+
+    Next i
+
+
+    ' ==========================================================================
+    ' 必要数だけ取り出す
+    ' ==========================================================================
+    ReDim result( _
+        1 To countToPick _
+    )
+
+
+    For i = 1 To countToPick
+
+        result(i) = _
+            ids(i)
+
+    Next i
+
+
+    SelectRandomIdsArray = _
+        result
+
+End Function
+
+
+' ==============================================================================
+' 配置セル一覧生成
+'
+' 例：
+'
+' 開始セル = A1
+' 問題数   = 10
+' 列数     = 2
+' 行間     = 2
+' 列間     = 2
+'
+' ↓
+'
+' A1
+' A3
+' A5
+' A7
+' A9
+'
+' C1
+' C3
+' C5
+' C7
+' C9
+' ==============================================================================
+Function BuildGridCells( _
+    ws As Worksheet, _
+    ByVal startAddress As String, _
+    ByVal itemCount As Long, _
+    ByVal columnCount As Long, _
+    ByVal rowStep As Long, _
+    ByVal columnStep As Long _
+) As Collection
+
+    Dim result As New Collection
+
+    Dim startCell As Range
+    Dim targetCell As Range
+
+    Dim rowsPerColumn As Long
+
+    Dim i As Long
+
+    Dim rowIndex As Long
+    Dim columnIndex As Long
+
+
+    Set startCell = _
+        ws.Range(startAddress)
+
+
+    ' ==========================================================================
+    ' 1列あたりの個数
+    ' ==========================================================================
+    rowsPerColumn = _
+        (itemCount + columnCount - 1) \ _
+        columnCount
+
+
+    For i = 1 To itemCount
+
+
+        columnIndex = _
+            (i - 1) \ _
+            rowsPerColumn
+
+
+        rowIndex = _
+            (i - 1) Mod _
+            rowsPerColumn
+
+
+        Set targetCell = _
+            startCell.Offset( _
+                rowIndex * rowStep, _
+                columnIndex * columnStep _
+            )
+
+
+        result.Add _
+            targetCell
+
+
+    Next i
+
+
+    Set BuildGridCells = _
+        result
+
+End Function
+
+
+' ==============================================================================
+' 元サイズで画像を挿入
+' ==============================================================================
+Function InsertImageNatural( _
+    ws As Worksheet, _
+    targetCell As Range, _
+    ByVal imgPath As String, _
+    ByVal shapeName As String _
+) As Shape
+
+    Dim pic As Shape
+    Dim area As Range
+
+
+    ' ==========================================================================
+    ' 結合セル対応
+    ' ==========================================================================
+    If targetCell.MergeCells Then
+
+        Set area = _
+            targetCell.MergeArea
+
+    Else
+
+        Set area = _
+            targetCell
+
+    End If
+
+
+    ' ==========================================================================
+    ' 元サイズで挿入
+    ' ==========================================================================
+    Set pic = _
+        ws.Shapes.AddPicture( _
+            fileName:=imgPath, _
+            LinkToFile:=msoFalse, _
+            SaveWithDocument:=msoTrue, _
+            Left:=area.Left, _
+            Top:=area.Top, _
+            Width:=-1, _
+            Height:=-1 _
+        )
+
+
+    pic.Name = _
+        shapeName
+
+
+    pic.LockAspectRatio = _
+        msoTrue
+
+
+    pic.Placement = _
+        xlMoveAndSize
+
+
+    Set InsertImageNatural = _
+        pic
+
+End Function
+
+
+' ==============================================================================
+' 画像がセル内に収まる最大倍率を計算
+'
+' 例：
+'
+' 75%まで縮小する必要がある
+'
+' → 0.75
+'
+'
+' セルの方が画像より大きくても、
+' 画像は100%以上には拡大しない。
+' ==============================================================================
+Function CalculateFitScale( _
+    pic As Shape, _
+    targetCell As Range, _
+    Optional ByVal margin As Double = 2 _
+) As Double
+
+    Dim area As Range
+
+    Dim maxWidth As Double
+    Dim maxHeight As Double
+
+    Dim scaleWidth As Double
+    Dim scaleHeight As Double
+
+    Dim scaleFactor As Double
+
+
+    If targetCell.MergeCells Then
+
+        Set area = _
+            targetCell.MergeArea
+
+    Else
+
+        Set area = _
+            targetCell
+
+    End If
+
+
+    maxWidth = _
+        area.Width - _
+        margin * 2
+
+
+    maxHeight = _
+        area.Height - _
+        margin * 2
+
+
+    If maxWidth <= 0 Or _
+       maxHeight <= 0 Then
+
+        CalculateFitScale = 0
+
+        Exit Function
+
+    End If
+
+
+    If pic.Width <= 0 Or _
+       pic.Height <= 0 Then
+
+        CalculateFitScale = 0
+
+        Exit Function
+
+    End If
+
+
+    scaleWidth = _
+        maxWidth / pic.Width
+
+
+    scaleHeight = _
+        maxHeight / pic.Height
+
+
+    If scaleWidth < scaleHeight Then
+
+        scaleFactor = _
+            scaleWidth
+
+    Else
+
+        scaleFactor = _
+            scaleHeight
+
+    End If
+
+
+    ' ==========================================================================
+    ' 拡大しない
+    ' ==========================================================================
+    If scaleFactor > 1 Then
+
+        scaleFactor = 1
+
+    End If
+
+
+    CalculateFitScale = _
+        scaleFactor
+
+End Function
+
+
+' ==============================================================================
+' セット共通倍率を適用
+'
+' セル中央へ配置する。
+' ==============================================================================
+Sub ApplyCommonScale( _
+    pic As Shape, _
+    targetCell As Range, _
+    ByVal scaleFactor As Double _
+)
+
+    Dim area As Range
+
+
+    If targetCell.MergeCells Then
+
+        Set area = _
+            targetCell.MergeArea
+
+    Else
+
+        Set area = _
+            targetCell
+
+    End If
+
+
+    If scaleFactor <= 0 Then
+        Exit Sub
+    End If
+
+
+    pic.LockAspectRatio = _
+        msoTrue
+
+
+    ' ==========================================================================
+    ' 同じセットの画像は全部同倍率
+    ' ==========================================================================
+    pic.Width = _
+        pic.Width * _
+        scaleFactor
+
+
+    ' ==========================================================================
+    ' 横中央
+    ' ==========================================================================
+    pic.Left = _
+        area.Left + _
+        (area.Width - pic.Width) * 0.05
+
+    ' ==========================================================================
+    ' 縦中央
+    ' ==========================================================================
+    pic.Top = _
+        area.Top + _
+        (area.Height - pic.Height) / 2
+
+
+    pic.Placement = _
+        xlMoveAndSize
+
+End Sub
+
+
+' ==============================================================================
+' 前回このVBAが作った画像だけ削除
+'
+' MathGen_で始まるShapeのみ対象。
+'
+' Excel上のボタンやロゴなどは残る。
+' ==============================================================================
+Sub DeleteGeneratedShapes( _
+    ws As Worksheet _
+)
+
+    Dim i As Long
+
+
+    For i = ws.Shapes.Count To 1 Step -1
+
+
+        If Left( _
+            ws.Shapes(i).Name, _
+            Len(SHAPE_PREFIX) _
+        ) = SHAPE_PREFIX Then
+
+
+            ws.Shapes(i).Delete
+
+
+        End If
+
+
+    Next i
+
+End Sub
+
+
+' ==============================================================================
+' Shape存在確認
+' ==============================================================================
+Function ShapeExists( _
+    ws As Worksheet, _
+    ByVal shapeName As String _
+) As Boolean
+
+    Dim shp As Shape
+
+
+    On Error Resume Next
+
+
+    Set shp = _
+        ws.Shapes(shapeName)
+
+
+    ShapeExists = _
+        Not shp Is Nothing
+
+
+    On Error GoTo 0
+
+End Function
+
+
+' ==============================================================================
+' Shape名
+'
+' 配置行と問題番号から生成
+'
+' 例：
+'
+' 配置設定8行目
+' 問題1
+'
+' ↓
+'
+' MathGen_R8_001
+' ==============================================================================
+Function BuildShapeName( _
+    ByVal placementRow As Long, _
+    ByVal itemIndex As Long _
+) As String
+
+    BuildShapeName = _
+        SHAPE_PREFIX & _
+        "R" & _
+        placementRow & _
+        "_" & _
+        Format(itemIndex, "000")
+
+End Function
+
+
+' ==============================================================================
+' 「問題」「解答」を内部表現へ変換
+'
+' 問題 → Q
+' 解答 → A
+' ==============================================================================
+Function NormalizePlacementType( _
+    ByVal value As String _
+) As String
+
+    value = _
+        LCase(Trim(value))
+
+
+    Select Case value
+
+
+        Case "問題", "question", "q"
+
+            NormalizePlacementType = _
+                "Q"
+
+
+        Case "解答", "回答", "answer", "a"
+
+            NormalizePlacementType = _
+                "A"
+
+
+        Case Else
+
+            NormalizePlacementType = _
+                ""
+
+
+    End Select
+
+End Function
+
+
+' ==============================================================================
+' 配置設定の有効判定
+'
+' 以下を有効として扱う：
+'
+' ○
+' 〇
+' 1
+' true
+' yes
+' on
+' ==============================================================================
+Function IsEnabled( _
+    ByVal value As Variant _
+) As Boolean
+
+    Dim s As String
+
+
+    s = _
+        LCase(Trim(CStr(value)))
+
+
+    Select Case s
+
+
+        Case "○", "〇", "1", _
+             "true", "yes", "on"
+
+            IsEnabled = _
+                True
+
+
+        Case Else
+
+            IsEnabled = _
+                False
+
+
+    End Select
+
+End Function
+
+
+' ==============================================================================
+' シート存在確認
+' ==============================================================================
+Function WorksheetExists( _
+    ByVal sheetName As String _
+) As Boolean
+
+    Dim ws As Worksheet
+
+
+    On Error Resume Next
+
+
+    Set ws = _
+        ThisWorkbook.Worksheets( _
+            sheetName _
+        )
+
+
+    WorksheetExists = _
+        Not ws Is Nothing
+
+
+    On Error GoTo 0
+
+End Function
+
+
+' ==============================================================================
+' フォルダ存在確認
+' ==============================================================================
+Function FolderExists( _
+    ByVal folderPath As String _
+) As Boolean
+
+    Dim fso As Object
+
+
+    Set fso = _
+        CreateObject( _
+            "Scripting.FileSystemObject" _
+        )
+
+
+    FolderExists = _
+        fso.FolderExists( _
+            folderPath _
+        )
+
+End Function
+
+
+' ==============================================================================
+' ファイル存在確認
+' ==============================================================================
+Function FileExists( _
+    ByVal filePath As String _
+) As Boolean
+
+    Dim fso As Object
+
+
+    Set fso = _
+        CreateObject( _
+            "Scripting.FileSystemObject" _
+        )
+
+
+    FileExists = _
+        fso.FileExists( _
+            filePath _
+        )
+
+End Function
+
+
+' ==============================================================================
+' 問題セット親フォルダ
+'
+' B2に
+'
+' question_sets
+'
+' と書いた場合：
+'
+' Excelと同じ場所\question_sets
+'
+'
+' C:\... のような絶対パスにも対応。
+' ==============================================================================
+Function ResolveFolderPath( _
+    ByVal folderSetting As String _
+) As String
+
+    folderSetting = _
+        Trim(folderSetting)
+
+
+    If folderSetting = "" Then
+
+        ResolveFolderPath = _
+            ThisWorkbook.Path
+
+        Exit Function
+
+    End If
+
+
+    ' ==========================================================================
+    ' Windows絶対パス
+    '
+    ' C:\...
+    ' ==========================================================================
+    If InStr(folderSetting, ":") > 0 Then
+
+        ResolveFolderPath = _
+            folderSetting
+
+        Exit Function
+
+    End If
+
+
+    ' ==========================================================================
+    ' ネットワークパス
+    '
+    ' \\server\...
+    ' ==========================================================================
+    If Left(folderSetting, 2) = "\\" Then
+
+        ResolveFolderPath = _
+            folderSetting
+
+        Exit Function
+
+    End If
+
+
+    ' ==========================================================================
+    ' 相対パス
+    ' ==========================================================================
+    ResolveFolderPath = _
+        CombinePath( _
+            ThisWorkbook.Path, _
+            folderSetting _
+        )
+
+End Function
+
+
+' ==============================================================================
+' パス結合
+' ==============================================================================
+Function CombinePath( _
+    ByVal basePath As String, _
+    ByVal childPath As String _
+) As String
+
+    If Right(basePath, 1) = "\" Then
+
+        CombinePath = _
+            basePath & _
+            childPath
+
+    Else
+
+        CombinePath = _
+            basePath & _
+            "\" & _
+            childPath
+
+    End If
+
+End Function
+
+
+' ==============================================================================
+' 英語の序数
+'
+' 1 → 1st
+' 2 → 2nd
+' 3 → 3rd
+' 4 → 4th
+' 11 → 11th
+' 12 → 12th
+' 13 → 13th
+' 21 → 21st
+' ==============================================================================
+Function OrdinalName( _
+    ByVal n As Long _
+) As String
+
+    Dim lastTwo As Long
+    Dim lastOne As Long
+
+
+    lastTwo = _
+        n Mod 100
+
+
+    ' ==========================================================================
+    ' 11, 12, 13 は例外
+    ' ==========================================================================
+    If lastTwo >= 11 And _
+       lastTwo <= 13 Then
+
+
+        OrdinalName = _
+            CStr(n) & _
+            "th"
+
+
+        Exit Function
+
+    End If
+
+
+    lastOne = _
+        n Mod 10
+
+
+    Select Case lastOne
+
+
+        Case 1
+
+            OrdinalName = _
+                CStr(n) & _
+                "st"
+
+
+        Case 2
+
+            OrdinalName = _
+                CStr(n) & _
+                "nd"
+
+
+        Case 3
+
+            OrdinalName = _
+                CStr(n) & _
+                "rd"
+
+
+        Case Else
+
+            OrdinalName = _
+                CStr(n) & _
+                "th"
+
+
+    End Select
+
+End Function
+

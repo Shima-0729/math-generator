@@ -474,6 +474,54 @@ h1 {
   margin-top: 7px;
 }
 
+/* CSVの出力形式から、LaTeXと画像の利用例へ移動する案内カード。 */
+.format-guide-link {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 16px;
+  border: 1px solid rgb(20 125 120 / 32%);
+  border-radius: 13px;
+  color: var(--ink);
+  background: #eff9f8;
+  text-decoration: none;
+  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.format-guide-link span:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.format-guide-link strong {
+  font-size: 0.9rem;
+}
+
+.format-guide-link small {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+
+.format-guide-link__arrow {
+  flex: 0 0 auto;
+  color: var(--primary);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.format-guide-link:hover {
+  border-color: var(--primary);
+  box-shadow: 0 8px 20px rgb(20 125 120 / 10%);
+  transform: translateY(-1px);
+}
+
+.format-guide-link:focus-visible {
+  outline: 3px solid rgb(242 166 90 / 55%);
+  outline-offset: 3px;
+}
+
 /* 設定や生成のエラーを警告色の枠と背景で表示する。 */
 .error-message {
   padding: 12px 14px;
@@ -939,6 +987,288 @@ h1 {
   margin-bottom: 0;
 }
 
+/* CSV利用例ページは、説明を上から順に読める単一カラムにする。 */
+.guide-breadcrumb,
+.guide-shell {
+  width: min(960px, calc(100% - 48px));
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.guide-breadcrumb {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  margin-bottom: 22px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.guide-breadcrumb a,
+.guide-card a:not(.primary-button, .secondary-button) {
+  color: var(--primary-dark);
+}
+
+.guide-shell {
+  display: grid;
+  gap: 24px;
+  margin-bottom: 64px;
+}
+
+.guide-card {
+  padding: clamp(24px, 5vw, 42px);
+  border: 1px solid rgb(216 226 229 / 85%);
+  border-radius: 24px;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: var(--shadow);
+}
+
+.guide-card > :last-child {
+  margin-bottom: 0;
+}
+
+.guide-intro h2,
+.guide-heading h2 {
+  margin-bottom: 7px;
+}
+
+.guide-heading {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+
+.guide-heading p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* 2つの出力形式と変換前後の例を、同じ幅で比較できるように並べる。 */
+.guide-format-grid,
+.guide-example-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.guide-format-grid {
+  margin-top: 24px;
+}
+
+.guide-format-grid article,
+.guide-example-grid > div {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #f8fbfb;
+}
+
+.guide-format-grid h3,
+.guide-example-grid h3,
+.code-toolbar h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.guide-format-grid p {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+
+.guide-example-grid {
+  margin-bottom: 22px;
+}
+
+.guide-example-grid code {
+  display: block;
+  overflow-x: auto;
+  color: var(--primary-dark);
+  font-size: 0.85rem;
+  line-height: 1.7;
+  white-space: nowrap;
+}
+
+.guide-command-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 24px 0 0;
+}
+
+.guide-command-list div {
+  min-width: 0;
+  padding: 13px;
+  border-radius: 10px;
+  background: #f1f7f6;
+}
+
+.guide-command-list dt,
+.guide-command-list dd {
+  margin: 0;
+}
+
+.guide-command-list dd {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+/* ZIP内部の階層を、空白を保った等幅文字で表示する。 */
+.guide-file-tree {
+  overflow-x: auto;
+  margin-bottom: 22px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #17212b;
+  color: #f4fbfa;
+  line-height: 1.75;
+  white-space: nowrap;
+}
+
+.guide-list,
+.guide-steps {
+  padding-left: 1.4em;
+  line-height: 1.8;
+}
+
+.guide-list li + li,
+.guide-steps li + li {
+  margin-top: 7px;
+}
+
+.guide-steps {
+  margin-bottom: 28px;
+}
+
+kbd {
+  padding: 2px 6px;
+  border: 1px solid #aebdc3;
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: #f6f8f9;
+  font: inherit;
+  font-size: 0.82em;
+}
+
+/* マクロが変更する範囲と実行前の確認事項を、コードより先に目立たせる。 */
+.guide-notice {
+  margin-bottom: 28px;
+  padding: 20px;
+  border: 1px solid #efd0ae;
+  border-radius: 14px;
+  background: #fff8f0;
+}
+
+.guide-notice h3 {
+  margin: 0 0 12px;
+  color: #8a531d;
+  font-size: 1rem;
+}
+
+.guide-notice p {
+  margin: 16px 0 0;
+  color: #6f5237;
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.code-panel {
+  overflow: hidden;
+  border: 1px solid #cbd8dc;
+  border-radius: 16px;
+}
+
+.code-toolbar {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background: #f5f9f9;
+}
+
+.code-toolbar p {
+  max-width: 38rem;
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.code-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+}
+
+.code-actions .primary-button,
+.code-actions .secondary-button,
+.guide-back-link .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  text-decoration: none;
+}
+
+.code-status {
+  margin: 0;
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.code-details {
+  border-top: 1px solid var(--line);
+}
+
+.code-details summary {
+  padding: 15px 20px;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.code-details pre {
+  max-height: 560px;
+  overflow: auto;
+  margin: 0;
+  padding: 20px;
+  border-top: 1px solid var(--line);
+  background: #17212b;
+  color: #eaf5f4;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  tab-size: 4;
+}
+
+/* Clipboard API非対応時のコピーに使う入力欄を、画面外へ置く。 */
+.clipboard-helper {
+  position: fixed;
+  top: 0;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.guide-back-link {
+  margin: 4px 0 0;
+  text-align: center;
+}
+
+/* 戻るボタンは濃色の背景に対して十分なコントラストを確保する。 */
+.guide-back-link .secondary-button {
+  color: #fff;
+}
+
 /* JavaScript無効時の案内を画面下部に固定する。 */
 .noscript-message {
   position: fixed;
@@ -1095,6 +1425,37 @@ h1 {
 
   .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .guide-breadcrumb,
+  .guide-shell {
+    width: min(100% - 24px, 960px);
+  }
+
+  .guide-card {
+    padding: 22px 20px;
+    border-radius: 18px;
+  }
+
+  .guide-format-grid,
+  .guide-example-grid,
+  .guide-command-list {
+    grid-template-columns: 1fr;
+  }
+
+  .code-toolbar,
+  .code-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .code-actions {
+    width: 100%;
+  }
+
+  .code-actions .primary-button,
+  .code-actions .secondary-button {
+    width: 100%;
   }
 }
 

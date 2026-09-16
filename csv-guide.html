@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="算数問題CSVのLaTeX表記と画像付きZIPの使い方、Excelへ問題画像を配置するVBAの利用例を紹介します。">
+  <meta name="color-scheme" content="light">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>LaTeX・画像付きZIPの使い方｜算数プリント作成ツール</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script defer src="js/vba-guide.js"></script>
+</head>
+<body>
+  <header class="site-header site-header--compact">
+    <div class="site-header__inner">
+      <p class="eyebrow">CSV OUTPUT GUIDE</p>
+      <h1>LaTeX・画像付きZIPの使い方</h1>
+      <p class="lead">CSVの数式をほかのアプリケーションで使う方法と、問題画像をExcelへ自動配置する例を紹介します。</p>
+    </div>
+  </header>
+
+  <nav class="guide-breadcrumb" aria-label="現在位置">
+    <a href="csv.html">CSV問題作成へ戻る</a>
+    <span aria-hidden="true">/</span>
+    <span>出力形式の使い方</span>
+  </nav>
+
+  <main class="guide-shell">
+    <section class="guide-card guide-intro" aria-labelledby="guide-overview-title">
+      <p class="eyebrow">OVERVIEW</p>
+      <h2 id="guide-overview-title">用途に合う形式を選ぶ</h2>
+      <div class="guide-format-grid">
+        <article>
+          <h3>LaTeX表示</h3>
+          <p>LaTeX入力に対応した数式エディターや教材作成ツールで、数式を編集して利用したい場合に向いています。</p>
+        </article>
+        <article>
+          <h3>画像付きZIP</h3>
+          <p>WordやExcelなどへ、見た目を保ったまま問題と答えを配置したい場合に向いています。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="guide-card" aria-labelledby="latex-guide-title">
+      <div class="guide-heading">
+        <span class="step-number" aria-hidden="true">1</span>
+        <div>
+          <h2 id="latex-guide-title">LaTeX表示を使う</h2>
+          <p>CSVの「問題」と「答え」に、数式を表すLaTeXコマンドが保存されます。</p>
+        </div>
+      </div>
+
+      <div class="guide-example-grid">
+        <div>
+          <h3>普通表示</h3>
+          <code>1 1/2 - 1/3 × 5/6 = □</code>
+        </div>
+        <div>
+          <h3>LaTeX表示</h3>
+          <code>1\frac{1}{2} - \frac{1}{3} \times \frac{5}{6} = \square</code>
+        </div>
+      </div>
+
+      <p>CSVを開くだけでは数式画像にはなりません。利用先のアプリケーションで、セルの内容をLaTeXとして読み込むか、数式入力欄へ貼り付けてください。</p>
+      <dl class="guide-command-list">
+        <div><dt><code>\frac{1}{2}</code></dt><dd>分数</dd></div>
+        <div><dt><code>\times</code></dt><dd>掛け算</dd></div>
+        <div><dt><code>\div</code></dt><dd>割り算</dd></div>
+        <div><dt><code>\square</code></dt><dd>空欄の四角</dd></div>
+      </dl>
+    </section>
+
+    <section class="guide-card" aria-labelledby="image-guide-title">
+      <div class="guide-heading">
+        <span class="step-number" aria-hidden="true">2</span>
+        <div>
+          <h2 id="image-guide-title">画像付きZIPを使う</h2>
+          <p>問題と答えのLaTeXを記録したCSVと、透明背景のPNG画像をまとめて保存します。</p>
+        </div>
+      </div>
+
+      <div class="guide-file-tree" role="img" aria-label="画像付きZIPのフォルダー構成">
+        <code>math_questions.zip<br>
+├─ data.csv<br>
+├─ questions/<br>
+│&nbsp;&nbsp;├─ q0001.png<br>
+│&nbsp;&nbsp;└─ q0002.png ...<br>
+└─ answers/<br>
+&nbsp;&nbsp;&nbsp;├─ a0001.png<br>
+&nbsp;&nbsp;&nbsp;└─ a0002.png ...</code>
+      </div>
+
+      <ul class="guide-list">
+        <li><code>data.csv</code>は、<code>id,question_latex,answer_latex</code>の3列です。</li>
+        <li>同じIDの問題画像と解答画像が対応します。例：<code>q0001.png</code>と<code>a0001.png</code></li>
+        <li>問題画像には式と□、解答画像には答えの数値だけが入ります。</li>
+        <li>画像は透明背景で、式の長さに応じて画像サイズが変わります。</li>
+      </ul>
+    </section>
+
+    <section class="guide-card" aria-labelledby="excel-guide-title">
+      <div class="guide-heading">
+        <span class="step-number" aria-hidden="true">3</span>
+        <div>
+          <h2 id="excel-guide-title">Excelへ画像を自動配置する</h2>
+          <p>画像付きZIPの問題と答えを、指定したExcelシートのセルへ配置するVBAの利用例です。Windows版Excelのデスクトップアプリを想定しています。</p>
+        </div>
+      </div>
+
+      <ol class="guide-steps">
+        <li>CSV問題作成ページで「画像付きZIP」を選び、問題を作成してZIPを保存します。</li>
+        <li>ZIPを展開し、問題セットのフォルダーをExcelブックと同じ場所へ置きます。</li>
+        <li>Excelブックをマクロ有効ブック（<code>.xlsm</code>）として保存します。</li>
+        <li><kbd>Alt</kbd>＋<kbd>F11</kbd>でVBAエディターを開き、「挿入」から「標準モジュール」を追加します。</li>
+        <li>下のVBAコードをすべてコピーして、標準モジュールへ貼り付けます。</li>
+        <li><code>CreateMathTestSettings</code>を最初に1回実行します。</li>
+        <li>作成された「設定」シートを編集し、<code>GenerateMathTests</code>を実行します。</li>
+      </ol>
+
+      <aside class="guide-notice" aria-labelledby="macro-notice-title">
+        <h3 id="macro-notice-title">実行前に確認してください</h3>
+        <ul class="guide-list">
+          <li>最初はExcelブックのコピーで試してください。</li>
+          <li><code>CreateMathTestSettings</code>は、既存の「設定」シートの内容を初期化します。</li>
+          <li>再生成時は、名前が<code>MathGen_</code>で始まる画像を削除して配置し直します。</li>
+          <li>このサイトで作成した画像など、信頼できるPNGだけを使用してください。</li>
+          <li>親フォルダーには、信頼できない共有フォルダーやネットワークパスを指定しないでください。</li>
+          <li>内容を確認できないマクロや、第三者が変更したコードは実行しないでください。</li>
+        </ul>
+        <p>掲載コードは、指定フォルダーのPNGを読み取り、Excelブック内の設定シートと画像を操作します。Web通信やコマンドの実行は行いませんが、設定したローカルフォルダーまたはネットワークフォルダーを参照します。</p>
+      </aside>
+
+      <div class="code-panel" aria-labelledby="vba-code-title">
+        <div class="code-toolbar">
+          <div>
+            <h3 id="vba-code-title">VBAコード</h3>
+            <p>UTF-8形式のテキストです。日本語が文字化けした場合は、ページ上のコピーボタンを利用してください。</p>
+          </div>
+          <div class="code-actions">
+            <button id="copy-vba-button" class="primary-button" type="button" disabled>VBAコードをコピー</button>
+            <a class="secondary-button" href="vba_code.txt" download="vba_code.txt">テキストをダウンロード</a>
+          </div>
+        </div>
+        <p id="copy-vba-status" class="code-status" role="status" aria-live="polite">VBAコードを読み込んでいます…</p>
+        <details class="code-details">
+          <summary>コードの内容を確認する</summary>
+          <pre tabindex="0"><code id="vba-code">読み込み中…</code></pre>
+        </details>
+      </div>
+    </section>
+
+    <p class="guide-back-link"><a class="secondary-button" href="csv.html">CSV問題作成へ戻る</a></p>
+  </main>
+
+  <footer class="site-footer">
+    <p>VBAを実行する前にコードの内容と操作対象を確認してください。</p>
+  </footer>
+
+  <noscript>
+    <p class="noscript-message">コードのコピー機能を使うにはJavaScriptを有効にしてください。テキストファイルはJavaScriptなしでもダウンロードできます。</p>
+  </noscript>
+</body>
+</html>
