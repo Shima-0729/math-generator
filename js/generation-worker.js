@@ -1,8 +1,8 @@
 // 重い問題生成を画面から切り離して実行するWorker。DOMを操作せず、進捗と結果をメッセージで返す。
 "use strict";
 
-// 整数・有理数の生成器を、Worker自身と同じディレクトリーから読み込む。
-importScripts("generator.js", "rational.js");
+// 整数・有理数の生成器を、Workerから見たalgorithmディレクトリーから読み込む。
+importScripts("../algorithm/int_problem_generator.js", "../algorithm/rational_problem_generator.js");
 
 // 設定とseedを受け取り、整数→有理数の順に生成して、必要なら全体を並べ替える。
 self.onmessage = function (event) {

@@ -48,9 +48,10 @@ KaTeX本体のMITライセンスと、フォントの内部情報に記載され
 - 現在のOFL公式サイト：https://openfontlicense.org/
 - OFL公式本文：https://openfontlicense.org/open-font-license-official-text/
 
-予約フォント名は各フォントの内部情報を参照してください。例えば `KaTeX_Main-Regular.ttf` には `KaTeX_Main` が記載されています。フォント本体および内部の著作権・ライセンス情報は変更していません。
+予約フォント名は各フォントの内部情報を参照してください。例えば `KaTeX_Main-Regular.ttf` には `KaTeX_Main` が記載されています。
 
-KaTeXの当該配布物に対応する独立したフォント用OFLファイルは確認できていないため、`katex/OFL.txt` は同梱していません。OFL公式FAQ 1.10は、フォント内部のメタデータにライセンス本文へのリンクを含める方法も認めています（全文の同梱を推奨）。参照：https://openfontlicense.org/ofl-faq/
+KaTeXの当該配布物に対応する独立したフォント用OFLファイルは確認できていないため、`katex/OFL.txt` は同梱していません。OFL公式FAQ 1.10は、フォント内部のメタデータにライセンス本文へのリンクを含める方法も認めています。
+参照：https://openfontlicense.org/ofl-faq/
 
 未使用の `katex/contrib/` は配布対象から除外しています。Apache-2.0の表示を含むmhchem拡張も同梱していません。
 
@@ -64,7 +65,7 @@ KaTeXの当該配布物に対応する独立したフォント用OFLファイル
 - JS配布元：https://unpkg.com/html-to-image@1.11.13/dist/html-to-image.js
 - ライセンス原文：https://raw.githubusercontent.com/bubkoo/html-to-image/v1.11.13/LICENSE
 
-画像付きZIPの問題・解答PNGの作成に使用します。利用者がダウンロードしたJSと公式ソース配布物内のLICENSEをコピーし、内容は変更していません。
+画像付きZIPの問題・解答PNGの作成に使用します。ダウンロードしたJSと公式ソース配布物内のLICENSEをコピーしました。
 
 ## fflate
 
@@ -76,4 +77,4 @@ KaTeXの当該配布物に対応する独立したフォント用OFLファイル
 - JS配布元：https://unpkg.com/fflate@0.8.3/umd/index.js
 - ライセンス原文：https://raw.githubusercontent.com/101arrowz/fflate/v0.8.3/LICENSE
 
-CSVとPNGをZIPに格納する処理に使用します。利用者がダウンロードした `index.js` を `fflate.js` の名前でコピーし、公式ソース配布物内のLICENSEも同梱しています。両ファイルの内容は変更していません。
+CSVとPNGをZIPに格納する処理に使用します。ダウンロードした `index.js` を `fflate.js` の名前でコピーし、公式ソース配布物内のLICENSEも同梱しています。両ファイルの内容は変更していません。

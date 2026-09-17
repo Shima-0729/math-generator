@@ -20,3 +20,6 @@ Thumbs.db
 
 # Python
 /[Pp]ython/
+/jupyter_note_book
+/algorithm/integer_problems.csv
+/algorithm/rational_problems.csv
