@@ -81,7 +81,7 @@ export_questions_to_csv(problems, "rational_problems.csv")
 
 `term_num` は式に登場する数の個数、`problem_num` は問題数です。両関数は `[問題, 答え]` の組を並べたリストを返します。CSV出力関数は、番号を加えた `index,problem,ans` の3列をUTF-8（BOM付き）で保存します。有理数版の問題・答えはLaTeX形式の文字列で、問題中の数は小数表示になる場合があります。
 
-各Pythonファイルを直接実行すると、ファイル末尾の使用例が1000問を生成し、同じ `algorithm/` フォルダ内にそれぞれ `integer_problems.csv` または `rational_problems.csv` を保存します。`import` だけでは生成・保存は始まりません。生成数や条件は使用例の引数を編集してください。
+各Pythonファイルを直接実行すると、ファイル末尾の使用例が1000問を生成し、同じ `algorithm/` フォルダ内にそれぞれ `integer_problems.csv` または `rational_problems.csv` を保存します。生成数や条件は使用例の引数を編集してください。
 
 ## JavaScript版の使い方
 
