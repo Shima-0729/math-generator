@@ -1011,11 +1011,13 @@ h1 {
 
 .guide-shell {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   margin-bottom: 64px;
 }
 
 .guide-card {
+  min-width: 0;
   padding: clamp(24px, 5vw, 42px);
   border: 1px solid rgb(216 226 229 / 85%);
   border-radius: 24px;
@@ -1179,6 +1181,8 @@ kbd {
 }
 
 .code-panel {
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   border: 1px solid #cbd8dc;
   border-radius: 16px;
@@ -1227,6 +1231,8 @@ kbd {
 }
 
 .code-details {
+  min-width: 0;
+  max-width: 100%;
   border-top: 1px solid var(--line);
 }
 
@@ -1237,8 +1243,12 @@ kbd {
 }
 
 .code-details pre {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
   max-height: 560px;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: auto;
   margin: 0;
   padding: 20px;
   border-top: 1px solid var(--line);
@@ -1246,7 +1256,15 @@ kbd {
   color: #eaf5f4;
   font-size: 0.78rem;
   line-height: 1.6;
+  white-space: pre;
   tab-size: 4;
+}
+
+/* 長い行の幅はcode要素に持たせ、ページではなくpre要素の内側だけを横スクロールさせる。 */
+.code-details code {
+  display: block;
+  width: max-content;
+  min-width: 100%;
 }
 
 /* Clipboard API非対応時のコピーに使う入力欄を、画面外へ置く。 */
