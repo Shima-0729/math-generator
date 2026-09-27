@@ -3,6 +3,7 @@
   "use strict";
 
   const OPERATORS = ["add", "sub", "multi", "div"];
+  const ADD_SUB_OPERATORS = ["add", "sub"];
   const SIDES = ["left", "right"];
 
   class GeneratorError extends Error {
@@ -129,11 +130,11 @@
   }
 
   /**
-   * Python版 make_problems(term_num, max_int, problem_num, back=False) の移植。
-   * 第5引数でseed付き乱数生成器を受け取れるようにしている。
+   * Python版 make_problems をブラウザ向けに移植した関数。
+   * 第5引数で乱数生成器を受け取り、第7引数で演算を加減算に限定できる。
    */
   // 指定項数の整数式を必要数作り、計算のみ・逆算のみ・混合の指定に従って□を置く。
-  function makeProblems(termNum, maxInt, problemNum, back = false, rng = Math.random, calculationOnly = false) {
+  function makeProblems(termNum, maxInt, problemNum, back = false, rng = Math.random, calculationOnly = false, addSubOnly = false) {
     assertIntegerInRange(termNum, 2, 4, "項数");
     assertIntegerInRange(maxInt, 10, 10000, "数値上限");
     assertIntegerInRange(problemNum, 1, 10000, "問題数");
@@ -141,8 +142,12 @@
     if (typeof rng !== "function") {
       throw new GeneratorError("乱数生成器が正しくありません。");
     }
+    if (typeof addSubOnly !== "boolean") {
+      throw new GeneratorError("演算の種類の設定が正しくありません。");
+    }
 
     const problems = [];
+    const availableOperators = addSubOnly ? ADD_SUB_OPERATORS : OPERATORS;
     // 逆算のみの場合は等号の右側を隠す候補から除外する。
     const lastMaskValue = back ? 0 : 1;
 
@@ -171,7 +176,7 @@
           if (2 * result >= maxInt) {
             selectedOperator = result > Math.floor(maxInt / 4) * 3 ? "sub" : "add";
           } else {
-            selectedOperator = randomChoice(OPERATORS, rng);
+            selectedOperator = randomChoice(availableOperators, rng);
           }
 
           if (selectedOperator === "add") {
@@ -269,21 +274,26 @@
             result = Math.floor(value / result);
           }
         } else {
-          // 右側への追加では、結果の大きさと割り切れる約数の有無で演算候補を絞る。
-          const resultDivisors = divisors(result);
-
-          if (2 * result >= maxInt && resultDivisors.length === 0) {
-            selectedOperator = result > Math.floor(maxInt / 4) * 3 ? "sub" : "add";
-          } else if (2 * result >= maxInt) {
-            let operatorIndex = Math.floor(rng() * 3);
-            if (operatorIndex === 2) {
-              operatorIndex += 1;
-            }
-            selectedOperator = OPERATORS[operatorIndex];
-          } else if (resultDivisors.length === 0 && termIndex !== 0) {
-            selectedOperator = OPERATORS[Math.floor(rng() * 3)];
+          if (addSubOnly) {
+            // 加減算だけの場合は、割り算のための約数判定を省く。
+            selectedOperator = randomChoice(ADD_SUB_OPERATORS, rng);
           } else {
-            selectedOperator = randomChoice(OPERATORS, rng);
+            // 右側への追加では、結果の大きさと割り切れる約数の有無で演算候補を絞る。
+            const resultDivisors = divisors(result);
+
+            if (2 * result >= maxInt && resultDivisors.length === 0) {
+              selectedOperator = result > Math.floor(maxInt / 4) * 3 ? "sub" : "add";
+            } else if (2 * result >= maxInt) {
+              let operatorIndex = Math.floor(rng() * 3);
+              if (operatorIndex === 2) {
+                operatorIndex += 1;
+              }
+              selectedOperator = OPERATORS[operatorIndex];
+            } else if (resultDivisors.length === 0 && termIndex !== 0) {
+              selectedOperator = OPERATORS[Math.floor(rng() * 3)];
+            } else {
+              selectedOperator = randomChoice(OPERATORS, rng);
+            }
           }
 
           // 上限付近では減算、小さすぎるときは加算へ切り替える。

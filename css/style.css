@@ -375,7 +375,7 @@ h1 {
   font-weight: 800;
 }
 
-/* ラジオボタンと説明文をカード状に配置する。 */
+/* ラジオボタンやチェックボックスと説明文をカード状に配置する。 */
 .choice-card {
   display: flex;
   gap: 11px;
@@ -386,7 +386,7 @@ h1 {
   transition: border-color 160ms ease, background 160ms ease;
 }
 
-/* 内部のラジオボタンが選択されたら親カードの背景と枠を変える。 */
+/* 内部の選択肢が選択されたら親カードの背景と枠を変える。 */
 .choice-card:has(input:checked) {
   border-color: var(--primary);
   background: #eff9f8;

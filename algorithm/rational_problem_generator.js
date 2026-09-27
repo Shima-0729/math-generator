@@ -262,17 +262,19 @@
     return reduction > 1 ? 1 + Math.min(4, Math.sqrt(reduction)) : 0.35;
   }
   // 追加項と演算を順に選んで1問を作る。続行できる候補がなければnullを返す。
-  function oneProblem(termNum, maxDen, type, context, rng) {
+  function oneProblem(termNum, maxDen, type, context, rng, addSubOnly) {
     // 数式生成の開始：最初の項となる分数を選ぶ。
     let ans = context.initial();
     let expression = { id: 0, display: display(ans, rng) };
     // 表示文字列とは別に各項の分数値を残し、逆算の答えを取り出せるようにする。
     const leaves = [ans];
+    // 加減算だけの指定では、候補の探索前に乗除算を除外する。
+    const operations = addSubOnly ? ["add", "sub"] : ["add", "sub", "multi", "div"];
     for (let id = 1; id < termNum; id += 1) {
       const choices = [];
       const weights = [];
       for (const side of ["left", "right"]) {
-        for (const op of ["add", "sub", "multi", "div"]) {
+        for (const op of operations) {
           const pool = context.pool(ans, op, side);
           if (!pool.length) continue;
           choices.push({ side, op, pool });
@@ -306,19 +308,20 @@
     };
   }
   // 設定を検証し、失敗した試行をやり直しながら指定数の有理数問題を生成する。
-  function makeProblemsRational(termNum, maxDen, maxNum, problemNum, type = "mixed", rng = Math.random, onProgress = () => {}) {
+  function makeProblemsRational(termNum, maxDen, maxNum, problemNum, type = "mixed", rng = Math.random, onProgress = () => {}, addSubOnly = false) {
     for (const [value, min, max, label] of [[termNum, 2, 4, "項数"], [maxDen, 2, 10, "分母の設定"],
       [maxNum, 1, 10, "有理数の計算結果の上限"], [problemNum, 0, 1000, "有理数問題数"]]) {
       if (!Number.isInteger(value) || value < min || value > max) throw new ErrorType(`${label}は${min}～${max}の整数で指定してください。`);
     }
     if (!["mixed", "calculation", "inverse"].includes(type) || typeof rng !== "function") throw new ErrorType("有理数問題の設定が正しくありません。");
+    if (typeof addSubOnly !== "boolean") throw new ErrorType("演算の種類の設定が正しくありません。");
     const context = createContext(maxNum, maxDen, rng);
     const problems = [];
     // 候補が見つからない条件で無限に再試行しないよう、試行回数に上限を設ける。
     const maxAttempts = Math.max(100, problemNum * 50);
     for (let attempts = 0; problems.length < problemNum && attempts < maxAttempts; attempts += 1) {
       // 数式生成：指定条件で1問を作り、成功した問題を必要数まで集める。
-      const problem = oneProblem(termNum, maxDen, type, context, rng);
+      const problem = oneProblem(termNum, maxDen, type, context, rng, addSubOnly);
       if (problem) {
         problems.push(problem);
         // 進捗通知は5問ごとと最後にまとめ、画面への通知回数を抑える。

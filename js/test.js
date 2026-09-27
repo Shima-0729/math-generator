@@ -9,6 +9,7 @@
   const settingsForm = document.querySelector("#test-settings-form");
   const startButton = settingsForm.querySelector('button[type="submit"]');
   const termCountInput = document.querySelector("#term-count");
+  const addSubOnlyInput = document.querySelector("#add-sub-only");
   const maxIntInput = document.querySelector("#max-int");
   const seedInput = document.querySelector("#seed");
   const settingsError = document.querySelector("#settings-error");
@@ -77,6 +78,7 @@
       maxInt: Number(maxIntInput.value),
       inverseOnly: selectedType.value === "inverse",
       calculationOnly: selectedType.value === "calculation",
+      addSubOnly: addSubOnlyInput.checked,
     };
   }
 
@@ -173,6 +175,7 @@
         settings.inverseOnly,
         poolRng,
         settings.calculationOnly,
+        settings.addSubOnly,
       );
       // テスト開始：生成した候補から15問を選び、出題画面へ切り替える。
       beginRound();

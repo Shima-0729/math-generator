@@ -800,7 +800,7 @@ def rational_candidate_pool(ans, op, side, max_num, max_den):
 
 
 def make_one_rational_problem(
-    term_num, max_denominator, max_num, problem_type
+    term_num, max_denominator, max_num, problem_type, add_sub_only=False
 ):
     """1問を構築する。候補が尽きた場合は None を返す。"""
     ans = rational_initial_operand(max_num, max_denominator)
@@ -809,7 +809,7 @@ def make_one_rational_problem(
         leaf_id=0, value=ans, display_value=initial_display
     )
     leaf_values = {0: ans}
-    operations = ("add", "sub", "multi", "div")
+    operations = ("add", "sub") if add_sub_only else ("add", "sub", "multi", "div")
     sides = ("left", "right")
 
     for leaf_id in range(1, term_num):
@@ -888,9 +888,11 @@ def make_problems_rational(
     max_num,
     problem_num: int,
     type=0,
+    add_sub_only=False,
 ):
     """
     正の有理数だけを使った四則演算問題を生成する。
+    add_sub_only=Trueなら演算を加減算に限定する。
 
     term_num:
         問題式に登場する数の個数（2以上）。
@@ -904,6 +906,8 @@ def make_problems_rational(
         生成する問題数。
     type:
         問題設定。1: 計算のみ、2: 逆算のみ、0: 計算＋逆算。
+    add_sub_only:
+        Trueなら足し算・引き算のみ使用する。既定値はFalse。
 
     戻り値:
         [[LaTeX形式の問題文字列, LaTeX形式の答え文字列], ...]
@@ -929,7 +933,7 @@ def make_problems_rational(
     while len(problems) < problem_num and attempts < max_attempts:
         attempts += 1
         problem = make_one_rational_problem(
-            term_num, max_denominator, max_value, type
+            term_num, max_denominator, max_value, type, add_sub_only
         )
         if problem is not None:
             problems.append(problem)
@@ -951,5 +955,6 @@ if __name__ == "__main__":
         max_num=2,
         problem_num=1000,
         type=2,
+        add_sub_only=False
     )
     export_questions_to_csv(problems, Path(__file__).with_name("rational_problems.csv"))

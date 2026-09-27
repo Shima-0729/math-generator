@@ -57,17 +57,18 @@ def random_int_adjust(a :int, b:int, strength = 1.5):
     return int(a + (b - a) * r)
 
 
-# 任意の四則演算問題を作成する。
-def make_problems(term_num :int, max_int :int, problem_num :int, type = 0):
+# 四則演算、または加減算だけの整数問題を作成する。
+def make_problems(term_num :int, max_int :int, problem_num :int, type = 0, add_sub_only = False):
     """
-        (int) term_int  : 項数
+        (int) term_num  : 項数
         (int) max_int   : 問題作成時、計算上の最大の数
-        (int) proble_num: 問題数
+        (int) problem_num: 問題数
         (int) type      : 問題設定 1: 計算のみ 2: 逆算のみ 0: 計算+逆算
+        (bool) add_sub_only: Trueなら足し算・引き算のみ使用する
     """
     problem_ans_list = []
     LRs = ["left","right"]
-    ops = ["add","sub","multi","div"]
+    ops = ["add","sub"] if add_sub_only else ["add","sub","multi","div"]
     lastmask_val = 1
 
     if(type == 2): lastmask_val = 0
@@ -102,7 +103,7 @@ def make_problems(term_num :int, max_int :int, problem_num :int, type = 0):
                         else:
                             sed_op = "add"
                     else:
-                        sed_op = ops[random.randint(0,3)]
+                        sed_op = ops[random.randint(0,len(ops)-1)]
 
                     match sed_op:
                         case "add":
@@ -187,7 +188,10 @@ def make_problems(term_num :int, max_int :int, problem_num :int, type = 0):
                             ans = a1 // ans
 
                 case "right":
-                    if((2 * ans >= max_int) and ((len(divisors(ans))) == 0)): #掛け算桁あふれもしくは割り算する対象が素数の時
+                    # 加減算だけの場合は、約数や乗除算の条件判定を行わない。
+                    if add_sub_only:
+                        sed_op = ops[random.randint(0,1)]
+                    elif((2 * ans >= max_int) and ((len(divisors(ans))) == 0)): #掛け算桁あふれもしくは割り算する対象が素数の時
                         if(ans > max_int // 4 * 3):
                             sed_op = "sub"
                         else:
@@ -292,5 +296,6 @@ if __name__ == "__main__":
         max_int=1000,
         problem_num=1000,
         type=0,
+        add_sub_only=False
     )
     export_questions_to_csv(problems, Path(__file__).with_name("integer_problems.csv"))

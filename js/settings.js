@@ -5,6 +5,7 @@
   // 設定フォームへイベントを登録し、検証済みの設定を取得するread関数を返す。
   function setup(form, countInput, mode) {
     const typeInput = form.querySelector("#number-type");
+    const addSubOnlyInput = form.querySelector("#add-sub-only");
     const integerCountInput = form.querySelector("#integer-count");
     const integerCountField = form.querySelector("#integer-count-field");
     const rationalSettings = form.querySelector("#rational-settings");
@@ -64,6 +65,7 @@
       // 生成しない種類の上限値はnullにし、非表示の入力欄の値を検証対象に含めない。
       return {
         problemType, numberType, problemCount, termCount, integerCount,
+        addSubOnly: addSubOnlyInput.checked,
         maxInt: integerCount > 0 ? readInteger(maxIntInput, 10, 10000, "整数の数値上限") : null,
         maxNum: integerCount < problemCount ? readInteger(maxNumInput, 1, 10, "有理数の計算結果の上限") : null,
         maxDenominator: integerCount < problemCount ? readInteger(maxDenInput, 2, 10, "分母の設定") : null,

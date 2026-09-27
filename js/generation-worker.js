@@ -18,7 +18,7 @@ self.onmessage = function (event) {
     // 整数の数式生成：指定件数の式と□の答えを作る。
     const integers = integerCount ? self.MathGenerator.makeProblems(
       settings.termCount, settings.maxInt, integerCount, settings.problemType === "inverse",
-      rng, settings.problemType === "calculation",
+      rng, settings.problemType === "calculation", settings.addSubOnly,
     ).map((item) => ({ ...item, problem: item.expression, numberType: "integer",
       problemType: item.isInverse ? "reverse" : "calculation" })) : [];
     // 有理数の進捗に完了済みの整数件数を足し、全体の進捗として画面に通知する。
@@ -26,6 +26,7 @@ self.onmessage = function (event) {
     const rationals = rationalCount ? self.RationalGenerator.makeProblemsRational(
       settings.termCount, settings.maxDenominator, settings.maxNum, rationalCount, settings.problemType, rng,
       (count) => self.postMessage({ kind: "progress", completed: integerCount + count, total: settings.problemCount }),
+      settings.addSubOnly,
     ) : [];
     const problems = integers.concat(rationals);
     // 混合モードは配列の後ろから交換先を選び、整数だけが先頭に偏らないよう並べ替える。
