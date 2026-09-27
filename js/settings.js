@@ -41,35 +41,27 @@
     integerCountInput.addEventListener("input", () => { countEdited = true; sync(); });
     sync();
 
-    // 空欄・小数・範囲外を拒否し、入力文字列を整数へ変換して返す。
-    function readInteger(input, min, max, label) {
+    // 空欄をNaNのまま残し、共通の検証窓口でほかの不正値と一緒に判定する。
+    function readNumber(input) {
       const raw = input.value.trim();
-      const value = Number(raw);
-      if (!raw || !Number.isInteger(value) || value < min || value > max) {
-        throw new global.MathGenerator.GeneratorError(`${label}は${min}～${max}の整数で指定してください。`);
-      }
-      return value;
+      return raw ? Number(raw) : NaN;
     }
-    // 出力先ごとの制限を検証し、生成器へ渡す設定オブジェクトを作る。
+    // フォームを設定オブジェクトへ変換し、共通の検証窓口を通して返す。
     function read() {
       const problemType = form.querySelector('input[name="problem-type"]:checked')?.value;
-      if (!["mixed", "calculation", "inverse"].includes(problemType)) throw new global.MathGenerator.GeneratorError("問題タイプを選択してください。");
       const numberType = typeInput.value;
-      if (!["integer", "rational", "mixed"].includes(numberType)) throw new global.MathGenerator.GeneratorError("数の種類を選択してください。");
-      // PDFは15問または30問、CSV・ZIPは1～1000問という上限を検証する。
-      const problemCount = readInteger(countInput, 1, mode === "pdf" ? 30 : 1000, "問題数");
-      if (mode === "pdf" && ![15, 30].includes(problemCount)) throw new global.MathGenerator.GeneratorError("PDFの問題数は15問または30問を選択してください。");
-      const termCount = readInteger(form.querySelector("#term-count"), 2, 4, "項数");
+      const problemCount = readNumber(countInput);
+      const termCount = readNumber(form.querySelector("#term-count"));
       const integerCount = numberType === "integer" ? problemCount : numberType === "rational" ? 0
-        : readInteger(integerCountInput, 0, problemCount, "整数問題数");
+        : readNumber(integerCountInput);
       // 生成しない種類の上限値はnullにし、非表示の入力欄の値を検証対象に含めない。
-      return {
-        problemType, numberType, problemCount, termCount, integerCount,
+      return global.SiteProblemGenerator.validateWorksheetSettings({
+        outputMode: mode, problemType, numberType, problemCount, termCount, integerCount,
         addSubOnly: addSubOnlyInput.checked,
-        maxInt: integerCount > 0 ? readInteger(maxIntInput, 10, 10000, "整数の数値上限") : null,
-        maxNum: integerCount < problemCount ? readInteger(maxNumInput, 1, 10, "有理数の計算結果の上限") : null,
-        maxDenominator: integerCount < problemCount ? readInteger(maxDenInput, 2, 10, "分母の設定") : null,
-      };
+        maxInt: integerCount > 0 ? readNumber(maxIntInput) : null,
+        maxNum: integerCount < problemCount ? readNumber(maxNumInput) : null,
+        maxDenominator: integerCount < problemCount ? readNumber(maxDenInput) : null,
+      });
     }
     return { read };
   }

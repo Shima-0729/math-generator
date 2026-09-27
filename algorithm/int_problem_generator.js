@@ -14,13 +14,6 @@
     }
   }
 
-  // 設定値が指定範囲の整数かを検証し、不正な場合は画面表示用の例外を投げる。
-  function assertIntegerInRange(value, minimum, maximum, label) {
-    if (!Number.isInteger(value) || value < minimum || value > maximum) {
-      throw new GeneratorError(`${label}は${minimum}～${maximum}の整数で指定してください。`);
-    }
-  }
-
   // 渡された乱数生成器を使い、配列の範囲内の添字を選ぶ。
   function randomIndex(length, rng) {
     if (!Number.isInteger(length) || length <= 0) {
@@ -135,9 +128,12 @@
    */
   // 指定項数の整数式を必要数作り、計算のみ・逆算のみ・混合の指定に従って□を置く。
   function makeProblems(termNum, maxInt, problemNum, back = false, rng = Math.random, calculationOnly = false, addSubOnly = false) {
-    assertIntegerInRange(termNum, 2, 4, "項数");
-    assertIntegerInRange(maxInt, 10, 10000, "数値上限");
-    assertIntegerInRange(problemNum, 1, 10000, "問題数");
+    // 生成処理が成立するための型と下限だけを確認する。サイトの上限は呼び出し側で検証する。
+    if (!Number.isSafeInteger(termNum) || termNum < 2
+      || !Number.isSafeInteger(maxInt) || maxInt < 10
+      || !Number.isSafeInteger(problemNum) || problemNum < 1) {
+      throw new GeneratorError("項数・数値上限・問題数は生成可能な整数で指定してください。");
+    }
 
     if (typeof rng !== "function") {
       throw new GeneratorError("乱数生成器が正しくありません。");

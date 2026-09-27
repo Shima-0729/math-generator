@@ -166,7 +166,8 @@
     if (!global.katex || !global.htmlToImage?.toCanvas || !global.fflate?.Zip || !global.fflate?.ZipPassThrough) {
       throw new Error("ZIP作成に必要なライブラリを読み込めませんでした。ページを再読み込みしてください。");
     }
-    if (!Array.isArray(items) || items.length < 1 || items.length > 1000
+    if (!Array.isArray(items) || items.length < global.MathSiteConfig.csv.problemCount.min
+      || items.length > global.MathSiteConfig.csv.problemCount.max
       || items.some((item, index) => item.id !== String(index + 1).padStart(4, "0")
         || typeof item.questionLatex !== "string" || typeof item.answerLatex !== "string")) {
       throw new Error("ZIPに保存する問題データが正しくありません。");

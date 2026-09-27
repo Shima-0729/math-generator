@@ -8,15 +8,17 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self'; img-src 'self' data: blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>算数テスト｜算数プリント作成ツール</title>
   <link rel="stylesheet" href="css/style.css">
+  <script defer src="js/site-config.js"></script>
   <script defer src="algorithm/int_problem_generator.js"></script>
+  <script defer src="js/problem-service.js"></script>
   <script defer src="js/test.js"></script>
 </head>
 <body>
   <header class="site-header site-header--compact">
     <div class="site-header__inner">
-      <p class="eyebrow">15 QUESTION MATH TEST</p>
+      <p class="eyebrow"><span data-test-size></span> QUESTION MATH TEST</p>
       <h1>算数テスト</h1>
-      <p class="lead">15問を1問ずつ解いて、かかった時間と回答回数を振り返ります。</p>
+      <p class="lead"><span data-test-size></span>問を1問ずつ解いて、かかった時間と回答回数を振り返ります。</p>
     </div>
   </header>
 
@@ -40,7 +42,7 @@
         <a class="feature-card is-current" href="#test-settings" aria-current="page">
           <span class="feature-card__number" aria-hidden="true">03</span>
           <strong>算数テスト</strong>
-          <small>15問を1問ずつ解いて記録</small>
+          <small><span data-test-size></span>問を1問ずつ解いて記録</small>
         </a>
       </div>
     </div>
@@ -52,7 +54,7 @@
         <span class="step-number" aria-hidden="true">1</span>
         <div>
           <h2 id="settings-title">テストの条件</h2>
-          <p>整数問題1000問の候補を作り、その中から15問を出題します。有理数問題はPDF・CSVで利用できます。</p>
+          <p>整数問題<span data-test-pool-size></span>問の候補を作り、その中から<span data-test-size></span>問を出題します。有理数問題はPDF・CSVで利用できます。</p>
         </div>
       </div>
 
@@ -93,19 +95,15 @@
         <div class="form-row">
           <label class="form-field" for="term-count">
             <span>項数</span>
-            <select id="term-count" name="term-count">
-              <option value="2">2項</option>
-              <option value="3" selected>3項</option>
-              <option value="4">4項</option>
-            </select>
+            <select id="term-count" name="term-count"></select>
           </label>
 
           <label class="form-field" for="max-int">
             <span class="form-field__label-row">
               数値上限
-              <small id="max-int-help" class="form-field__inline-help">10～10000の整数</small>
+              <small id="max-int-help" class="form-field__inline-help"></small>
             </span>
-            <input id="max-int" name="max-int" type="number" value="500" min="10" max="10000" step="1" inputmode="numeric" required aria-describedby="max-int-help">
+            <input id="max-int" name="max-int" type="number" step="1" inputmode="numeric" required aria-describedby="max-int-help">
           </label>
         </div>
 
@@ -123,7 +121,7 @@
 
     <section id="test-question" class="test-card" aria-labelledby="question-title" hidden>
       <div class="test-progress-row">
-        <p id="question-progress" class="test-progress">問題 1 / 15</p>
+        <p id="question-progress" class="test-progress">問題 1 / <span data-test-size></span></p>
         <p class="test-seed">seed: <output id="test-seed-output"></output></p>
       </div>
       <div class="progress-track" aria-hidden="true">
@@ -147,7 +145,7 @@
     <section id="test-results" class="results-card" aria-labelledby="results-title" hidden>
       <div class="results-heading">
         <p class="eyebrow">TEST COMPLETE</p>
-        <h2 id="results-title">15問すべて正解しました</h2>
+        <h2 id="results-title"><span data-test-size></span>問すべて正解しました</h2>
         <p>今回の記録を振り返ってみましょう。</p>
       </div>
 
@@ -196,7 +194,7 @@
       </div>
 
       <div class="result-actions">
-        <button id="retry-button" class="primary-button" type="button">さらに15問解く</button>
+        <button id="retry-button" class="primary-button" type="button">さらに<span data-test-size></span>問解く</button>
         <button id="back-button" class="secondary-button" type="button">設定画面に戻る</button>
       </div>
     </section>

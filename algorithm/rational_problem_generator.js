@@ -307,11 +307,14 @@
       isInverse: !calculation,
     };
   }
-  // 設定を検証し、失敗した試行をやり直しながら指定数の有理数問題を生成する。
+  // 最低限の入力条件を確認し、失敗した試行をやり直しながら指定数の有理数問題を生成する。
   function makeProblemsRational(termNum, maxDen, maxNum, problemNum, type = "mixed", rng = Math.random, onProgress = () => {}, addSubOnly = false) {
-    for (const [value, min, max, label] of [[termNum, 2, 4, "項数"], [maxDen, 2, 10, "分母の設定"],
-      [maxNum, 1, 10, "有理数の計算結果の上限"], [problemNum, 0, 1000, "有理数問題数"]]) {
-      if (!Number.isInteger(value) || value < min || value > max) throw new ErrorType(`${label}は${min}～${max}の整数で指定してください。`);
+    // 分数の候補を作れる下限だけを守り、サイトごとの上限は呼び出し側へ任せる。
+    if (!Number.isSafeInteger(termNum) || termNum < 2
+      || !Number.isSafeInteger(maxDen) || maxDen < 2
+      || !Number.isSafeInteger(maxNum) || maxNum < 1
+      || !Number.isSafeInteger(problemNum) || problemNum < 0) {
+      throw new ErrorType("項数・分母・計算結果の上限・問題数は生成可能な整数で指定してください。");
     }
     if (!["mixed", "calculation", "inverse"].includes(type) || typeof rng !== "function") throw new ErrorType("有理数問題の設定が正しくありません。");
     if (typeof addSubOnly !== "boolean") throw new ErrorType("演算の種類の設定が正しくありません。");

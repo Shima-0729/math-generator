@@ -1,9 +1,8 @@
-// テスト画面の制御。問題候補の生成、15問の出題、採点と所要時間の集計を担当する。
+// テスト画面の制御。問題候補の生成、設定された件数の出題、採点と所要時間の集計を担当する。
 (function () {
   "use strict";
 
-  const POOL_SIZE = 1000;
-  const TEST_SIZE = 15;
+  const TEST_SIZE = window.MathSiteConfig.test.questionCount;
   const CORRECT_DELAY_MS = 700;
   const settingsSection = document.querySelector("#test-settings");
   const settingsForm = document.querySelector("#test-settings-form");
@@ -65,21 +64,15 @@
     startButton.textContent = isBusy ? "問題を準備中…" : "テストを始める";
   }
 
-  // フォームの値を数値とモード指定へ変換する。数値範囲は生成処理で検証する。
+  // フォームの値を共通の検証窓口に渡し、テストの生成条件へ変換する。
   function readSettings() {
-    const selectedType = settingsForm.querySelector('input[name="problem-type"]:checked');
-
-    if (!selectedType) {
-      throw new window.MathGenerator.GeneratorError("問題タイプを選択してください。");
-    }
-
-    return {
-      termCount: Number(termCountInput.value),
-      maxInt: Number(maxIntInput.value),
-      inverseOnly: selectedType.value === "inverse",
-      calculationOnly: selectedType.value === "calculation",
+    const problemType = settingsForm.querySelector('input[name="problem-type"]:checked')?.value;
+    return window.SiteProblemGenerator.validateTestSettings({
+      termCount: termCountInput.value.trim() ? Number(termCountInput.value) : NaN,
+      maxInt: maxIntInput.value.trim() ? Number(maxIntInput.value) : NaN,
+      problemType,
       addSubOnly: addSubOnlyInput.checked,
-    };
+    });
   }
 
   // 元の問題配列を変更せず、コピーを乱数で並べ替える。
@@ -92,7 +85,7 @@
     return shuffled;
   }
 
-  // 式の重複を除いた候補から、今回出題する15問を選ぶ。
+  // 式の重複を除いた候補から、今回出題する件数だけ選ぶ。
   function selectQuestions() {
     const expressions = new Set();
     const uniquePool = state.pool.filter((problem) => {
@@ -105,11 +98,11 @@
 
     if (uniquePool.length < TEST_SIZE) {
       throw new window.MathGenerator.GeneratorError(
-        "異なる問題を15問用意できませんでした。条件またはseedを変更してください。",
+        `異なる問題を${TEST_SIZE}問用意できませんでした。条件またはseedを変更してください。`,
       );
     }
 
-    // 入力seedは候補生成に使う。15問の抽出には現在時刻由来の別seedを使う。
+    // 入力seedは候補生成に使う。出題分の抽出には現在時刻由来の別seedを使う。
     const selectionSeed = `${Date.now()}-${performance.now()}`;
     const selectionRng = window.MathGenerator.createSeededRandom(selectionSeed);
     return shuffle(uniquePool, selectionRng).slice(0, TEST_SIZE);
@@ -140,7 +133,7 @@
 
   // 候補から問題を選び直し、記録を初期化して新しいテストを開始する。
   function beginRound() {
-    // 出題の準備：候補から重複のない15問を選び、今回のテスト問題にする。
+    // 出題の準備：候補から重複のない問題を選び、今回のテスト問題にする。
     state.questions = selectQuestions();
     state.results = [];
     state.currentIndex = 0;
@@ -167,17 +160,9 @@
       const requestedSeed = seedInput.value.trim();
       state.seed = requestedSeed || window.MathGenerator.createRandomSeed();
       const poolRng = window.MathGenerator.createSeededRandom(state.seed);
-      // 数式生成：指定条件とseedで、テストの候補となる1000問を作る。
-      state.pool = window.MathGenerator.makeProblems(
-        settings.termCount,
-        settings.maxInt,
-        POOL_SIZE,
-        settings.inverseOnly,
-        poolRng,
-        settings.calculationOnly,
-        settings.addSubOnly,
-      );
-      // テスト開始：生成した候補から15問を選び、出題画面へ切り替える。
+      // 数式生成：指定条件とseedで、設定された件数のテスト候補を作る。
+      state.pool = window.SiteProblemGenerator.generateTestPool(settings, poolRng);
+      // テスト開始：生成した候補から指定件数を選び、出題画面へ切り替える。
       beginRound();
     } catch (error) {
       console.error("Test preparation failed:", error);
@@ -242,7 +227,7 @@
     resultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  // 次の問題へ進み、全15問が終了した場合は結果を表示する。
+  // 次の問題へ進み、設定された問題数が終了した場合は結果を表示する。
   function moveToNextQuestion() {
     state.currentIndex += 1;
     if (state.currentIndex >= TEST_SIZE) {
@@ -299,10 +284,10 @@
     window.setTimeout(moveToNextQuestion, CORRECT_DELAY_MS);
   }
 
-  // 同じ問題候補を使って15問を選び直し、再挑戦を始める。
+  // 同じ問題候補を使って指定件数を選び直し、再挑戦を始める。
   function handleRetry() {
     try {
-      // 再挑戦：同じ候補から15問を選び直し、新しいテストを開始する。
+      // 再挑戦：同じ候補から指定件数を選び直し、新しいテストを開始する。
       beginRound();
     } catch (error) {
       console.error("Test restart failed:", error);

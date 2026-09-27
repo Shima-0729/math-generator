@@ -9,7 +9,7 @@
   const PAGE_WIDTH = 210;
   const PAGE_HEIGHT = 297;
   const MARGIN_X = 15;
-  const PROBLEMS_PER_PAGE = 30;
+  const PROBLEMS_PER_PAGE = window.MathSiteConfig.pdf.problemsPerPage;
 
   // 取得処理そのものをキャッシュし、同時要求や2回目の生成で重複取得を避ける。
   let fontBinaryPromise = null;
@@ -97,9 +97,9 @@
     }
   }
 
-  // 問題文を上から下へ並べる。15問を超える場合は2列にして1ページに収める。
+  // 問題文を上から下へ並べる。1列で収まる件数を超えたら2列にする。
   function drawProblems(doc, problems, startNumber) {
-    const twoColumns = problems.length > 15;
+    const twoColumns = problems.length > Math.floor(PROBLEMS_PER_PAGE / 2);
     const columnCount = twoColumns ? 2 : 1;
     const rowsPerColumn = Math.ceil(problems.length / columnCount);
     const columnWidth = (PAGE_WIDTH - MARGIN_X * 2) / columnCount;

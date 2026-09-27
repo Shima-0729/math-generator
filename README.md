@@ -91,7 +91,7 @@ export_questions_to_csv(problems, "rational_problems.csv")
 
 ## JavaScript版の使い方
 
-ブラウザで `algorithm/int_problem_generator.js` と `algorithm/rational_problem_generator.js` を読み込むと、`MathGenerator` と `RationalGenerator` が利用できます。例えば両ファイルを `<script>` で読み込んだページでは、次の呼び出しでそれぞれ10問を生成します。
+ブラウザで `algorithm/int_problem_generator.js` と `algorithm/rational_problem_generator.js` をこの順に読み込むと、`MathGenerator` と `RationalGenerator` が利用できます。両ファイルを `<script>` で読み込んだページでは、次の呼び出しでそれぞれ10問を生成します。
 
 ```javascript
 const integerProblems = MathGenerator.makeProblems(3, 100, 10);
@@ -104,7 +104,11 @@ const rationalProblems = RationalGenerator.makeProblemsRational(3, 6, 2, 10, "mi
 
 ## Webサイトでの使用例
 
-同梱のサイトでは、JavaScript版を使って[PDFプリント](index.html)、[CSV・画像付きZIP](csv.html)、[整数問題の15問テスト](test.html)を作れます。各画面の「足し算・引き算だけ」を選ぶと、掛け算・割り算を含まない式になります。PDFとCSVでは整数のみ、有理数のみ、両方の混合を選べます。[CSVと画像の使い方](csv-guide.html)には、出力した画像をExcelで使う例もあります。サイトの生成処理はブラウザ内で行います。ローカルで動かす場合は、Web Workerを読み込めるようWebサーバー経由で開いてください。
+同梱のサイトでは、JavaScript版を使って[PDFプリント](index.html)、[CSV・画像付きZIP](csv.html)、[整数問題のテスト](test.html)を作れます。各画面の「足し算・引き算だけ」を選ぶと、掛け算・割り算を含まない式になります。PDFとCSVでは整数のみ、有理数のみ、両方の混合を選べます。[CSVと画像の使い方](csv-guide.html)には、出力した画像をExcelで使う例もあります。サイトの生成処理はブラウザ内で行います。ローカルで動かす場合は、Web Workerを読み込めるようWebサーバー経由で開いてください。
+
+サイトの件数制限や難易度の初期値は、[`js/site-config.js`](js/site-config.js) 冒頭の `config` にまとめています。CSV・ZIPの問題数は `csv.problemCount`、テストの出題数と候補数は `test`、項数・整数上限・有理数の計算結果上限・分母上限はそれぞれ `termCount`・`maxInt`・`maxNum`・`maxDenominator` を編集してください。フォームの選択肢・説明文と生成時の検証に同じ値が反映されます。PDFの選択肢は `pdf.problemCounts` で変更できますが、問題用紙のレイアウトは1ページ最大30問です。Python版の初期値や制限はこのサイト設定の対象外です。
+
+サイトからの生成は [`js/problem-service.js`](js/problem-service.js) が設定を検証してからアルゴリズムを呼び出します。`algorithm/` 内のJavaScript生成器はサイト設定を読み込まず、直接利用する際は項数・問題数などの上限を呼び出し側で決めてください。
 
 ## 主なファイル
 
@@ -112,6 +116,8 @@ const rationalProblems = RationalGenerator.makeProblemsRational(3, 6, 2, 10, "mi
 | --- | --- |
 | [`algorithm/`](algorithm/) | Python版・JavaScript版の問題生成アルゴリズム |
 | [`js/`](js/) | サイトの画面操作、CSV・PDF・ZIP出力、生成Worker |
+| [`js/site-config.js`](js/site-config.js) | サイトの問題数・項数・数値範囲・初期値の設定 |
+| [`js/problem-service.js`](js/problem-service.js) | サイト設定の検証とJavaScript生成器の呼び出し |
 | [`index.html`](index.html)、[`csv.html`](csv.html)、[`test.html`](test.html) | アルゴリズムを利用するサンプルサイト |
 | [`css/`](css/) | サイトのスタイル |
 | [`katex/`](katex/)、[`vendor/`](vendor/)、[`fonts/`](fonts/) | サイトで使用する外部ライブラリとフォント |
